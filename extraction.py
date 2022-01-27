@@ -4,7 +4,7 @@ from straxen import pre_apply_function
 from straxen.plugins.peak_processing import PeakBasics
 export, __all__ = strax.exporter()
 
-SUPPORTED_SIGNALS = ['KrS1A', 'KrS1B', 'ArS1', 'RnS1']
+SUPPORTED_SIGNALS = ['KrS1A', 'KrS1B', 'ArS1']
 
 
 @export
@@ -24,8 +24,7 @@ class EventsOfInterest(strax.MergeOnlyPlugin):
     """
     depends_on = ('event_info', 
                   'cuts_ar37_kshell_s1s2', 
-                  'cut_fiducial_volume', 
-                  'cuts_rn220')
+                  'cut_fiducial_volume')
     provides = 'events_oi'
     __version__ = '0.0.0'
 
@@ -33,7 +32,7 @@ class EventsOfInterest(strax.MergeOnlyPlugin):
 @export
 @strax.takes_config(
     strax.Option('signal_type', type=str,
-                 help='signal type that can be one of KrS1A, KrS1B, ArS1, RnS1'),
+                 help='signal type that can be one of KrS1A, KrS1B, ArS1),
     strax.Option('n_tpc_pmts', type=int,
                  help='Number of TPC PMTs'),
     strax.Option('fv_cut', type=bool, default =True,
@@ -55,8 +54,8 @@ class PeaksOfInterest(strax.Plugin):
         assert self.config['signal_type'] in SUPPORTED_SIGNALS, "Please try signal type in the supported list: %s"%(SUPPORTED_SIGNALS)
         if self.config['signal_type'] == 'ArS1':
             cut = 'cuts_ar37_kshell_s1s2'
-        elif self.config['signal_type'] == 'RnS1':
-            cut = 'cuts_rn220'
+        #elif self.config['signal_type'] == 'RnS1':
+            #cut = 'cuts_rn220'
         elif self.config['signal_type'] == 'KrS1A' or 'KrS1B':
             cut = 'cut_Kr_DoubleS1_SingleS2'
         return cut
