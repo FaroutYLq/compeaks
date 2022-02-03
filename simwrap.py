@@ -16,6 +16,7 @@ density = 2.94
 driftfield= 18.3
 NSUMWVSAMPLES = 200
 NWIDTHS = 11
+INT_NAN = -99999
 
 
 def instruction(interaction_type, energy, N_events=1):  
@@ -28,7 +29,7 @@ def instruction(interaction_type, energy, N_events=1):
         energy (float or list): energy deposit in unit of keV
         N_events (int, optional): simulation number. Defaults to 1.
     """
-    if type(energy) != float or int:
+    if (type(energy) != float) and (type(energy) != int):
         assert len(energy)==2, 'You must input a single energy or array like [low, high] for uniform dist'
 
     instr = np.zeros(N_events , wfsim.instruction_dtype)
@@ -40,7 +41,7 @@ def instruction(interaction_type, energy, N_events=1):
     instr['local_field'] = driftfield
 
     for i in range(0, N_events):
-        if type(energy) == (float or int):
+        if (type(energy) == float) or (type(energy) == int):
             e = energy
         else:
             e = np.random.uniform(low=energy[0], high=energy[1])
@@ -54,7 +55,7 @@ def instruction(interaction_type, energy, N_events=1):
     return instr  
 
 
-def get_sim_context(interaction_type, energy, N=100000):
+def get_sim_context(interaction_type, energy, N=10000):
     """Generate simulation context.
     nr=0, wimp=1, b8=2, dd=3, ambe=4, cf=5, ion=6, gammaray=7,
     beta=8, ch3t=9, c14=10, kr83m=11, nonetype=12
@@ -71,10 +72,10 @@ def get_sim_context(interaction_type, energy, N=100000):
         temp['time'] = temp['time'] + j * N_events * int(1e6)
         fax_instr.append(temp)
     fax_instr = np.concatenate(fax_instr)
-    if type(energy) == float or int:
-        file_name = '/dali/lgrandi/yuanlq/s1_wf_comparison/krypton/wfsim_config/int%s_e%s_%s.csv'%(interaction_type, energy,energy)
+    if (type(energy) == float) or (type(energy) == int):
+        file_name = '/dali/lgrandi/yuanlq/s1_wf_comparison/krypton/wfsim_config/int%s_e%s_%s.csv'%(interaction_type, int(energy),int(energy))
     else:
-        file_name = '/dali/lgrandi/yuanlq/s1_wf_comparison/krypton/wfsim_config/int%s_e%s_%s.csv'%(interaction_type, energy[0],energy[1])
+        file_name = '/dali/lgrandi/yuanlq/s1_wf_comparison/krypton/wfsim_config/int%s_e%s_%s.csv'%(interaction_type, int(energy[0]),int(energy[1]))
     pd.DataFrame(fax_instr).to_csv(file_name, index=False)
 
     stwf = straxen.contexts.xenonnt_simulation(
@@ -92,7 +93,7 @@ def get_sim_context(interaction_type, energy, N=100000):
     }))
 
     stwf.set_config(
-        dict(fax_file='/dali/lgrandi/yuanlq/s1_wf_comparison/krypton/wfsim_config/krs1b_1.csv',
+        dict(fax_file=file_name,
             right_raw_extension=20000,
             event_rate=1000,
             chunk_size=1,
@@ -161,8 +162,11 @@ def sim_peak_extra(peaks, peak_basics, truth, match):
     ]
     
     peak_indecies = match['matched_to']
-    peaks = peaks[peak_indecies]
-    peak_basics = peak_basics[peak_indecies]
+    matched_mask = peak_indecies != INT_NAN
+
+    truth = truth[matched_mask] # in case of missed
+    peaks = peaks[peak_indecies[matched_mask]]
+    peak_basics = peak_basics[peak_indecies[matched_mask]]
     
     peak_extra = np.zeros(len(peaks), dtype=dtypes)
     
@@ -178,7 +182,7 @@ def sim_peak_extra(peaks, peak_basics, truth, match):
     return peak_extra
 
 
-def get_sim_peak_extra(runid, interaction_type, energy, N=100000, **kargs):
+def get_sim_peak_extra(runid, interaction_type, energy, N=10000, **kargs):
     """Get peak_extra for simulation.
     nr=0, wimp=1, b8=2, dd=3, ambe=4, cf=5, ion=6, gammaray=7,
     beta=8, ch3t=9, c14=10, kr83m=11, nonetype=12
@@ -194,7 +198,7 @@ def get_sim_peak_extra(runid, interaction_type, energy, N=100000, **kargs):
     """
     st = get_sim_context(interaction_type=interaction_type, energy=energy, N=N)
     peaks = st.get_array(runid, 'peaks', config=dict(**kargs))
-    peak_baiscs = st.get_array(runid, 'peak_basics', config=dict(**kargs))
+    peak_basics = st.get_array(runid, 'peak_basics', config=dict(**kargs))
     truth = st.get_array(runid, 'truth', config=dict(**kargs))
     match = st.get_array(runid, 'match_acceptance_extended', config=dict(**kargs))
     peak_extra = sim_peak_extra(peaks, peak_basics, truth, match)
