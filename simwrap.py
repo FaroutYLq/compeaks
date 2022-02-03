@@ -8,7 +8,7 @@ import pickle
 from multihist import Hist1d
 import matplotlib.pyplot as plt
 import nestpy
-import apndas as pd
+import pandas as pd
 import pema
 
 nc = nestpy.NESTcalc(nestpy.DetectorExample_XENON10())
@@ -40,10 +40,10 @@ def instruction(interaction_type, energy, N_events=1):
     instr['local_field'] = driftfield
 
     for i in range(0, N_events):
-        if type(e) == float or int:
+        if type(energy) == (float or int):
             e = energy
         else:
-            e = np.uniform(low=energy[0], high=energy[1])
+            e = np.random.uniform(low=energy[0], high=energy[1])
         yields = nc.GetYields(nestpy.INTERACTION_TYPE(interaction_type), e, density, driftfield)
         cur_q = nc.GetQuanta(yields)
         instr['time'][i] = (i+1) * int(1e6)
@@ -67,7 +67,7 @@ def get_sim_context(interaction_type, energy, N=100000):
     fax_instr = []
     N_events = 1
     for j in range(N):
-        temp = instruction(energy_9, denergy_9, N_events)
+        temp = instruction(interaction_type, energy, N_events)
         temp['time'] = temp['time'] + j * N_events * int(1e6)
         fax_instr.append(temp)
     fax_instr = np.concatenate(fax_instr)
@@ -180,6 +180,8 @@ def sim_peak_extra(peaks, peak_basics, truth, match):
 
 def get_sim_peak_extra(runid, interaction_type, energy, N=100000, **kargs):
     """Get peak_extra for simulation.
+    nr=0, wimp=1, b8=2, dd=3, ambe=4, cf=5, ion=6, gammaray=7,
+    beta=8, ch3t=9, c14=10, kr83m=11, nonetype=12
 
     Args:
         runid (str): runid in wfsim
