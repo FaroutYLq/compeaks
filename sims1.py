@@ -185,10 +185,52 @@ def sims1(z_position, interaction_type, e_dep,
     scint_t, scint_y = scintillation(interaction_type=interaction_type, e_dep=e_dep, 
                                      config_file=config_file)
     tts_t, tts_y = transit(config_file=config_file)
-    spe_ts, spe_ys = spe(config_file=config_file)
+    spe_t, spe_y = spe(config_file=config_file)
 
     result = np.convolve(prop_y, scint_y)
     result = np.convolve(result, spe_y)
     result = np.convolve(result, tts_y)
 
     return result
+
+
+def get_s1_templates(interaction_type, e_dep, z_positions=ZSLIACES,
+                     spline_file='XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz', 
+                     config_file='fax_config_nt_sr0_v0.json',
+                     plot=True):
+    """Get s1 templates based on wfsim from different depth slices.
+
+    Args:
+        interaction_type ([type]): [description]
+        e_dep ([type]): [description]
+        z_positions ([type], optional): [description]. Defaults to ZSLIACES.
+        spline_file (str, optional): [description]. Defaults to 'XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz'.
+        config_file (str, optional): [description]. Defaults to 'fax_config_nt_sr0_v0.json'.
+        plot (bool, optional): [description]. Defaults to True.
+    """
+
+    import matplotlib as mpl
+    if plot:
+        plt.figure(dpi=200)
+        colors_er = plt.get_cmap('jet', 10*len(z_positions)+1)
+
+    sim_wfs = np.zeros((len(z_positions),800))
+
+    for e in range(len(z_positions)):
+        y1 = sims1(z_position=z_positions[e], interaction_type=interaction_type, e_dep=e_dep)
+        if plot:
+            plt.plot(y1, c=colors_er(1+e*10) , linewidth=1, alpha=0.3)
+        sim_wfs[e] = y1[100:900]
+
+    if plot:
+        norm = mpl.colors.Normalize(vmin=z_positions[0], vmax=z_positions[-1])
+        sm1 = plt.cm.ScalarMappable(cmap=colors_er, norm=norm)
+        sm1.set_array([])
+        cb1 = plt.colorbar(sm1)
+        cb1.set_label('depth [cm]')
+        plt.xlabel('time [ns]')
+        plt.title('WFSIM S1 at different positions [E=%skeV, NESTtype%s]'%(e_dep, interaction_type))
+        plt.xlim(100,500)
+        plt.show()
+    
+    return sim_wfs
