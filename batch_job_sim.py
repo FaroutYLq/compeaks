@@ -9,9 +9,9 @@ print(utilix.__file__)
 
 _, interaction_type, energy, N  = sys.argv
 
-AR37 = np.array(['ar37s1_0','ar37s1_1','ar37s1_2','ar37s1_3','ar37s1_4','ar37s1_5','ar37s1_6','ar37s1_7','ar37s1_8', 'ar37s1_9'])
-AMBE = np.array(['ambes1_0','ambes1_1','ambes1_2','ambes1_3','ambes1_4','ambes1_5','ambes1_6','ambes1_7','ambes1_8', 'ambes1_9'])
-KR83M= np.array(['kr83ms1_0','kr83ms1_1','kr83ms1_2','kr83ms1_3','kr83ms1_4','kr83ms1_5','kr83ms1_6','kr83ms1_7','kr83ms1_8', 'kr83ms1_9'])
+AR37 = np.array(['ar37s1_t0'])
+AMBE = np.array(['ambes1_t0'])
+KR83M= np.array(['kr83ms1_t0'])
 
 class Submit(object):
     '''

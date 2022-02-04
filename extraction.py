@@ -20,7 +20,7 @@ class EventsDoubleMerged(strax.MergeOnlyPlugin):
                   'cut_fiducial_volume')
     provides = 'events_merged'
     __version__ = '0.0.0'
-    save_when = strax.SaveWhen.NEVER
+    #save_when = strax.SaveWhen.NEVER
 
 
 @export
@@ -32,7 +32,7 @@ class EventsMerged(strax.MergeOnlyPlugin):
                   'cut_fiducial_volume')
     provides = 'events_merged'
     __version__ = '0.0.0'
-    save_when = strax.SaveWhen.NEVER
+    #save_when = strax.SaveWhen.NEVER
 
 
 @export
@@ -48,7 +48,7 @@ class EventsOfInterest(strax.Plugin):
     depends_on = ('events_merged')
     provides = 'events_oi'
     __version__ = '0.0.0'
-    save_when = strax.SaveWhen.NEVER
+    #save_when = strax.SaveWhen.NEVER
 
     def infer_dtype(self):
         assert self.config['signal_type'] in SUPPORTED_SIGNALS, "Please try signal type in the supported list: %s"%(SUPPORTED_SIGNALS)
@@ -86,7 +86,7 @@ class PeaksOfInterest(strax.Plugin):
     depends_on = ('events_oi', 'peaks')
     provides = 'peaks_oi'
     __version__ = '0.0.0'
-    save_when = strax.SaveWhen.NEVER
+    #save_when = strax.SaveWhen.NEVER
 
 
     def infer_dtype(self):
@@ -123,7 +123,7 @@ class PeakBasicsOfInterest(PeakBasics):
     provides = ('peak_basics_oi')
     depends_on = ('peaks_oi',)
     dtype = PEAK_BASICS_DTYPE
-    save_when = strax.SaveWhen.NEVER
+    #save_when = strax.SaveWhen.NEVER
 
     def compute(self, events): # named events, but actually are peaks_oi as we desired
         # same as original plugin https://github.com/XENONnT/straxen/blob/86a8a55f3d79d361181196b21ee7ae96e2af2fc4/straxen/plugins/peak_processing.py#L73
@@ -167,6 +167,7 @@ class PeakExtra(strax.MergeOnlyPlugin):
                   'peak_basics_oi')
     provides = 'peak_extra'
     __version__ = '0.0.0'
+    save_when = strax.SaveWhen.ALWAYS
 
 
 def get_context(signal_type, version='xenonnt_v6', output_folder='/project2/lgrandi/yuanlq/xenonnt/'):

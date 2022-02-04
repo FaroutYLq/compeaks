@@ -73,14 +73,14 @@ def get_sim_context(interaction_type, energy, N=10000):
         fax_instr.append(temp)
     fax_instr = np.concatenate(fax_instr)
     if (type(energy) == float) or (type(energy) == int):
-        file_name = '/dali/lgrandi/yuanlq/s1_wf_comparison/krypton/wfsim_config/int%s_e%s_%s.csv'%(interaction_type, int(energy),int(energy))
+        file_name = '/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_config/int%s_e%s_%s.csv'%(interaction_type, int(energy),int(energy))
     else:
-        file_name = '/dali/lgrandi/yuanlq/s1_wf_comparison/krypton/wfsim_config/int%s_e%s_%s.csv'%(interaction_type, int(energy[0]),int(energy[1]))
+        file_name = '/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_config/int%s_e%s_%s.csv'%(interaction_type, int(energy[0]),int(energy[1]))
     pd.DataFrame(fax_instr).to_csv(file_name, index=False)
 
     stwf = straxen.contexts.xenonnt_simulation(
         cmt_run_id_sim = '034000',
-        output_folder='/dali/lgrandi/yuanlq/s1_wf_comparison/krypton/wfsim_data',
+        output_folder='/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_data',
         fax_config='fax_config_nt_sr0_v0.json',)
 
     stwf.set_config(dict(fax_config_override={
