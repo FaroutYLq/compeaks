@@ -17,6 +17,14 @@ driftfield= 18.3
 NSUMWVSAMPLES = 200
 NWIDTHS = 11
 INT_NAN = -99999
+FAX_CONFIG_DEFAULT={
+        's1_model_type': 'nest+optical_propagation',
+        's1_pattern_map': '/dali/lgrandi/xenonnt/simulations/optphot/mc_v4.1.0/S1_1.69_0.99_0.99_0.99_0.99_10000_100_30/XENONnT_S1_xyz_patterns_LCE_corrected_QEs_MCv4.1.0_wires.pkl',
+        's1_time_spline': 'XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz',
+        'enable_noise': True,
+        'enable_electron_afterpulses': True,
+        'enable_pmt_afterpulses': True,
+    }
 
 
 def instruction(interaction_type, energy, N_events=1):  
@@ -55,7 +63,7 @@ def instruction(interaction_type, energy, N_events=1):
     return instr  
 
 
-def get_sim_context(interaction_type, energy, N=10000):
+def get_sim_context(interaction_type, energy, N=10000, **kargs):
     """Generate simulation context.
     nr=0, wimp=1, b8=2, dd=3, ambe=4, cf=5, ion=6, gammaray=7,
     beta=8, ch3t=9, c14=10, kr83m=11, nonetype=12
@@ -83,14 +91,8 @@ def get_sim_context(interaction_type, energy, N=10000):
         output_folder='/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_data',
         fax_config='fax_config_nt_sr0_v0.json',)
 
-    stwf.set_config(dict(fax_config_override={
-        's1_model_type': 'nest+optical_propagation',
-        's1_pattern_map': '/dali/lgrandi/xenonnt/simulations/optphot/mc_v4.1.0/S1_1.69_0.99_0.99_0.99_0.99_10000_100_30/XENONnT_S1_xyz_patterns_LCE_MCv4.1.0_wires.pkl',
-        's1_time_spline': 'XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz',
-        'enable_noise': True,
-        'enable_electron_afterpulses': True,
-        'enable_pmt_afterpulses': True,
-    }))
+    config_dict = FAX_CONFIG_DEFAULT.update(kargs)
+    stwf.set_config(dict(fax_config_overide=config_dict))
 
     stwf.set_config(
         dict(fax_file=file_name,
@@ -182,7 +184,7 @@ def sim_peak_extra(peaks, peak_basics, truth, match):
     return peak_extra
 
 
-def get_sim_peak_extra(runid, interaction_type, energy, N=10000, **kargs):
+def get_sim_peak_extra(runid, interaction_type, energy, N=10000, straxen_config={}, **kargs):
     """Get peak_extra for simulation.
     nr=0, wimp=1, b8=2, dd=3, ambe=4, cf=5, ion=6, gammaray=7,
     beta=8, ch3t=9, c14=10, kr83m=11, nonetype=12
@@ -192,15 +194,16 @@ def get_sim_peak_extra(runid, interaction_type, energy, N=10000, **kargs):
         interaction_type (int): Following the NEST type of intereaction.
         energy (float or list): energy deposit in unit of keV
         N (int, optional): simulation number. Defaults to 1.
+        **kargs: overide fax config.
 
     Returns:
         (ndarray): peak extra for simulation (not exactly same dtype as is in regular peak_extra)
     """
-    st = get_sim_context(interaction_type=interaction_type, energy=energy, N=N)
-    peaks = st.get_array(runid, 'peaks', config=dict(**kargs))
-    peak_basics = st.get_array(runid, 'peak_basics', config=dict(**kargs))
-    truth = st.get_array(runid, 'truth', config=dict(**kargs))
-    match = st.get_array(runid, 'match_acceptance_extended', config=dict(**kargs))
+    st = get_sim_context(interaction_type=interaction_type, energy=energy, N=N, **kargs)
+    peaks = st.get_array(runid, 'peaks', config=straxen_config)
+    peak_basics = st.get_array(runid, 'peak_basics', config=straxen_config)
+    truth = st.get_array(runid, 'truth', config=straxen_config)
+    match = st.get_array(runid, 'match_acceptance_extended', config=straxen_config)
     peak_extra = sim_peak_extra(peaks, peak_basics, truth, match)
 
     return peak_extra

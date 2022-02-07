@@ -248,8 +248,8 @@ def get_peak_basics(runs, signal_type, version='xenonnt_v6', output_folder='/pro
     return result
 
 
-def get_peak_extra(signal_type, runs=False, version='xenonnt_v6', 
-                   output_folder='/project2/lgrandi/yuanlq/xenonnt/', **kargs):
+def get_data_peak_extra(signal_type, runs=False, version='xenonnt_v6', 
+                        output_folder='/project2/lgrandi/yuanlq/xenonnt/', **kargs):
     """wrapper around get_array to get peak_extra of a certain source. Now supporting KrS1A, KrS1B, Ar37.
 
     Args:
@@ -259,7 +259,7 @@ def get_peak_extra(signal_type, runs=False, version='xenonnt_v6',
         output_folder (str, optional): strax data output folder. Defaults to '/project2/lgrandi/yuanlq/xenonnt/'.
     """
     cutax_context = get_context(signal_type=signal_type, version=version, output_folder=output_folder)
-    if runs:
+    if not (type(runs)==bool and runs==False):
         result = cutax_context.get_array(runs, 'peak_extra', config=dict(signal_type=signal_type, **kargs))
     else:
         result = cutax_context.get_array(SOURCE_RUNS[signal_type], 'peak_extra', config=dict(signal_type=signal_type, **kargs))

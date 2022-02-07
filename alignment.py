@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from scipy import stats, interpolate, optimize
 import numba
-from tqdm import tqdm
+
 
 METHODS = {'first_phr', 'area_range', 'self_adjusted'}
 
@@ -69,7 +69,7 @@ def align_peaks_at_times(peaklets, align_time, sample_per_wf=200, align_at=50):
     
     assert len(np.unique(peaklets['dt'])==1)
     
-    for i,p in tqdm(enumerate(peaklets)):
+    for i,p in enumerate(peaklets):
         # Find the closest sample to the alignment time
         area_percent_sample_i = int(np.around(align_time[i]/dt))
 
@@ -274,7 +274,7 @@ def align_self_adjusted(peaks, dt=10, min_area=18, max_peaks=40000, align_at=50)
 
     res = np.zeros((n_peaks, 600))
     res[0][start_index:start_index+len(p1)] += p1
-    for i in tqdm(range(1, n_peaks)):
+    for i in range(1, n_peaks):
         p2 = peaks[i]['data'][:peaks[i]['length']]/peaks[i]['area']
         template = np.mean(res[:i], axis=0)
         corr = np.correlate(template, p2)
@@ -331,3 +331,79 @@ def get_avgwf(peaks, method='first_phr', dt=10, min_area=18, n_slices=10, align_
         plt.show()
 
     return avg_wf_mean, avg_wf_err
+
+
+def shift_avg_wfs(wf0_dt1, wf1_dt10, wf2_dt10):
+    """Align three average waveforms to plot, based on mean time. 
+    Assumed wf0_dt1 is always leftmost. The returns will usually reduce the length of waveforms.
+
+    Args:
+        wf0_dt1 (1darray): waveform with dt=1ns. Usually wfsim original template.
+        wf1_dt10 (1darray): waveform with dt=10ns. Usually data reconstructed with alignment.
+        wf2_dt10 (1darray): waveform with dt=10ns. Usually wfsim reconstructed with alignment.
+    """
+    xs0_dt1 = np.arange(len(wf0_dt1))
+    xs1_dt10 = np.arange(len(wf1_dt10))*10
+    xs2_dt10 = np.arange(len(wf2_dt10))*10
+    
+    init_mean_wf0 = np.sum(xs0_dt1 * wf0_dt1)
+    init_mean_wf1 = np.sum(xs1_dt10 * wf1_dt10)
+    init_mean_wf2 = np.sum(xs2_dt10 * wf2_dt10)
+    
+    # moving one sample, how much will the mean time be changed
+    d_shift0 = 1
+    d_shift1 = 10
+    d_shift2 = 10
+    
+    # moving wf1 to first place left to wf0
+    d_sample1 = int((init_mean_wf1 - init_mean_wf0)/d_shift1) + 1
+    assert d_sample1 >= 0
+    mean_wf1 = init_mean_wf1 - d_sample1 * d_shift1
+    wf1_dt10 = wf1_dt10[d_sample1:]
+    
+    # moving wf2 to anywhere closest to wf1
+    d_sample2 = int(np.around((init_mean_wf2 - mean_wf1)/d_shift2))
+    assert d_sample2 >= 0
+    mean_wf2 = init_mean_wf2 - d_sample2 * d_shift2
+    wf2_dt10 = wf2_dt10[d_sample2:]
+    
+    # moving wf0 to anywhere closest to wf2
+    d_sample0 = int(np.around((init_mean_wf0 - mean_wf2)/d_shift0))
+    d_sample0 = max(d_sample0, 0)
+    wf0_dt1 = wf0_dt1[d_sample0:]
+    
+    return wf0_dt1, wf1_dt10, wf2_dt10
+
+
+def shift_avg_wf(wf1_dt10, wf2_dt10, align_at=190):
+    """Align two average waveforms to plot, based on mean time. 
+    The returns will usually reduce the length of waveforms.
+
+    Args:
+        wf1_dt10 (1darray): waveform with dt=10ns. Usually data reconstructed with alignment.
+        wf2_dt10 (1darray): waveform with dt=10ns. Usually wfsim reconstructed with alignment.
+        align_at (float): align point of mean time in unit of ns.
+    """
+    xs1_dt10 = np.arange(len(wf1_dt10))*10
+    xs2_dt10 = np.arange(len(wf2_dt10))*10
+    
+    init_mean_wf1 = np.sum(xs1_dt10 * wf1_dt10)
+    init_mean_wf2 = np.sum(xs2_dt10 * wf2_dt10)
+    
+    # moving one sample, how much will the mean time be changed
+    d_shift1 = 10
+    d_shift2 = 10
+    
+    # moving wf1 to first place left to align point
+    d_sample1 = int((init_mean_wf1 - align_at)/d_shift1) + 1
+    assert d_sample1 >= 0
+    mean_wf1 = init_mean_wf1 - d_sample1 * d_shift1
+    wf1_dt10 = wf1_dt10[d_sample1:]
+    
+    # moving wf2 to anywhere closest to wf1
+    d_sample2 = int(np.around((init_mean_wf2 - mean_wf1)/d_shift2))
+    assert d_sample2 >= 0
+    mean_wf2 = init_mean_wf2 - d_sample2 * d_shift2
+    wf2_dt10 = wf2_dt10[d_sample2:]
+    
+    return wf1_dt10, wf2_dt10
