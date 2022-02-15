@@ -91,7 +91,10 @@ def get_sim_context(interaction_type, energy, N=10000, **kargs):
         output_folder='/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_data',
         fax_config='fax_config_nt_sr0_v0.json',)
 
-    config_dict = FAX_CONFIG_DEFAULT.update(kargs)
+    config_dict = FAX_CONFIG_DEFAULT
+    config_dict.update(kargs)
+    print('FAX config:')
+    print(config_dict)
     stwf.set_config(dict(fax_config_overide=config_dict))
 
     stwf.set_config(
@@ -150,6 +153,8 @@ def sim_peak_extra(peaks, peak_basics, truth, match):
           'rise_time'), np.float32),
         (('Hits within tight range of mean',
           'tight_coincidence'), np.int16),
+        (('Number of hits contributing at least one sample to the peak',
+          'n_hits'), np.int32),
         (('PMT channel within tight range of mean',
           'tight_coincidence_channel'), np.int16),
         (('Classification of the peak(let)',
@@ -174,7 +179,7 @@ def sim_peak_extra(peaks, peak_basics, truth, match):
     
     for i in range(len(dtypes)):
         field = dtypes[i][0][1]
-        if field == 'data' or field == 'area_decile_from_midpoint':
+        if field == 'data' or field == 'area_decile_from_midpoint' or field=='n_hits':
             peak_extra[field] = peaks[field]
         elif field == 'x' or field == 'y' or field == 'z':
             peak_extra[field] = truth[field]
@@ -184,7 +189,7 @@ def sim_peak_extra(peaks, peak_basics, truth, match):
     return peak_extra
 
 
-def get_sim_peak_extra(runid, interaction_type, energy, N=10000, straxen_config={}, **kargs):
+def get_sim_peak_extra(runid, interaction_type, energy, N=100000, straxen_config={}, **kargs):
     """Get peak_extra for simulation.
     nr=0, wimp=1, b8=2, dd=3, ambe=4, cf=5, ion=6, gammaray=7,
     beta=8, ch3t=9, c14=10, kr83m=11, nonetype=12
