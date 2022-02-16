@@ -95,7 +95,7 @@ def get_sim_context(interaction_type, energy, N=10000, **kargs):
     config_dict.update(kargs)
     print('FAX config:')
     print(config_dict)
-    stwf.set_config(dict(fax_config_overide=config_dict))
+    stwf.set_config(dict(fax_config_override=config_dict))
 
     stwf.set_config(
         dict(fax_file=file_name,
