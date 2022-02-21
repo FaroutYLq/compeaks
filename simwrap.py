@@ -22,8 +22,8 @@ FAX_CONFIG_DEFAULT={
         's1_pattern_map': '/dali/lgrandi/xenonnt/simulations/optphot/mc_v4.1.0/S1_1.69_0.99_0.99_0.99_0.99_10000_100_30/XENONnT_S1_xyz_patterns_LCE_corrected_QEs_MCv4.1.0_wires.pkl',
         's1_time_spline': 'XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz',
         'enable_noise': True,
-        'enable_electron_afterpulses': True,
-        'enable_pmt_afterpulses': True,
+        'enable_electron_afterpulses': False,
+        'enable_pmt_afterpulses': False,
     }
 
 
