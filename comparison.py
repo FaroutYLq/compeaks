@@ -40,7 +40,7 @@ COMPARISON_SPACES = [('z', 'area_fraction_top'),
 ZSLIACES = np.array([-128, -116, -104,  -92, -79,  -67,  -55,  -43, -31,  -19])
 
 
-def get_peak_extra(signal_type, straxen_config={}, **kargs):
+def get_peak_extra(signal_type, runid=False, straxen_config={}, **kargs):
     """Wrapper around data/wfsim peak_extra getter.
 
     Args:
@@ -54,17 +54,25 @@ def get_peak_extra(signal_type, straxen_config={}, **kargs):
     # data
     print('Loading peak_extra now, please be patient...')
     if signal_type[:3] != 'sim': 
+        print('Loading peak extra from data')
         peak_extra = extraction.get_data_peak_extra(signal_type=signal_type)
     # wfsim
     else:
-        peak_extra = simwrap.get_sim_peak_extra(runid=DEFAULT_SIM_RUNS[signal_type], 
-                                                interaction_type=INTERACTION_TYPES[signal_type], 
-                                                energy=ENERGY_DEPOSIT[signal_type],
-                                                **kargs)
+        print('Loading peak extra from wfsim')
+        if type(runid)==bool:
+            peak_extra = simwrap.get_sim_peak_extra(runid=DEFAULT_SIM_RUNS[signal_type], 
+                                                    interaction_type=INTERACTION_TYPES[signal_type], 
+                                                    energy=ENERGY_DEPOSIT[signal_type],
+                                                    **kargs)
+        else:
+            peak_extra = simwrap.get_sim_peak_extra(runid=runid, 
+                                                    interaction_type=INTERACTION_TYPES[signal_type], 
+                                                    energy=ENERGY_DEPOSIT[signal_type],
+                                                    **kargs)
     return peak_extra
 
 
-def get_avgwfs(peak_extra, signal_type, method='first_phr', xlims=(40,90)):
+def get_avgwfs(peak_extra, signal_type, method='first_phr', xlims=(400,900)):
     """Wrapper around data/wfsim average waveform getter.
 
     Args:
@@ -82,17 +90,18 @@ def get_avgwfs(peak_extra, signal_type, method='first_phr', xlims=(40,90)):
         wfsim_template = sims1.get_s1_templates(interaction_type=INTERACTION_TYPES[signal_type], 
                                                 e_dep=ENERGY_DEPOSIT[signal_type])
         
+        wfsim_template = wfsim_template/np.sum(wfsim_template, axis=1)[:,np.newaxis]
         print('Computing aligned reconstucted wfsim %s average waveform with method %s...'%(signal_type, method))
         avg_wf_mean, _ = alignment.get_avgwf(peak_extra, 
                                                       method=method, xlims=xlims)
-
+        avg_wf_mean = avg_wf_mean/np.sum(avg_wf_mean, axis=1)[:,np.newaxis]
         return wfsim_template, avg_wf_mean
 
     else:
         print('Computing aligned reconstucted data %s average waveform with method %s...'%(signal_type, method))
         avg_wf_mean, _ = alignment.get_avgwf(peak_extra, 
                                                       method=method, xlims=xlims)
-
+        avg_wf_mean = avg_wf_mean/np.sum(avg_wf_mean, axis=1)[:,np.newaxis]
         return avg_wf_mean
 
 
@@ -116,14 +125,14 @@ def compare_avgwfs(signal_type0, signal_type1, avg_wf_mean0, avg_wf_mean1, metho
         is_sim1 = True
     
     # Comparing data VS data
-    print('Now comparing %s and %s average waveforms at different depth...')
+    print('Now comparing %s and %s average waveforms at different depth...'%(signal_type0, signal_type1))
     for i in range(10):
         if is_sim0 == False and is_sim1 == False:
             wf0, wf1 = alignment.shift_avg_wf(avg_wf_mean0[i], avg_wf_mean1[i])
         
             plt.figure(dpi=200)
-            plt.plot(np.arange(len(wf0))*10, wf0, label=signal_type0)
-            plt.plot(np.arange(len(wf1))*10, wf1, label=signal_type1)
+            plt.plot(np.arange(len(wf0)), wf0, label=signal_type0)
+            plt.plot(np.arange(len(wf1)), wf1, label=signal_type1)
             plt.legend()
             plt.xlim(0,500)
             plt.grid()
@@ -134,13 +143,12 @@ def compare_avgwfs(signal_type0, signal_type1, avg_wf_mean0, avg_wf_mean1, metho
         else:
             assert type(wfsim_template)!=bool, 'You are comparing data and wfsim, you must input a wfsim template for reference'
             template, wf0, wf1 = alignment.shift_avg_wfs(wf0_dt1=wfsim_template[i], 
-                                                         wf1_dt10=avg_wf_mean0[i], 
-                                                         wf2_dt10=avg_wf_mean1[i])
-
+                                                         wf1_dt1=avg_wf_mean0[i], 
+                                                         wf2_dt1=avg_wf_mean1[i])
             plt.figure(dpi=200)
-            plt.plot(np.arange(len(template)), 10*template, label='%s template'%(signal_type1))
-            plt.plot(np.arange(len(wf0))*10, wf0, label=signal_type0)
-            plt.plot(np.arange(len(wf1))*10, wf1, label=signal_type1)
+            plt.plot(np.arange(len(template)), template, label='%s template'%(signal_type1))
+            plt.plot(np.arange(len(wf0)), wf0, label=signal_type0)
+            plt.plot(np.arange(len(wf1)), wf1, label=signal_type1)
             plt.legend()
             plt.xlim(0,500)
             plt.xlabel('time [ns]')

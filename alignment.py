@@ -8,7 +8,7 @@ import numba
 METHODS = {'first_phr', 'area_range', 'self_adjusted'}
 
 
-def align_first_phr(peaklets, dt=10, min_area=18, align_at=50):
+def align_first_phr(peaklets, dt=10, min_area=18, align_at=500):
     """Align the waveforms at first photon recorded (no alignment). 
     Technically this function just normalized waveforms.
 
@@ -16,27 +16,31 @@ def align_first_phr(peaklets, dt=10, min_area=18, align_at=50):
         peaklets (ndarray): Peak level data. 
         dt (int, optional): [description]. Defaults to 10.
         min_area (int, optional): [description]. Defaults to 18.
-        align_at (int, optional): The output waveforms will be aligned at this index. Defaults to 50.
+        align_at (int, optional): The output waveforms will be aligned at this time in unit of ns. Defaults to 500.
 
     Returns:
         (2darray): 2d array of waveforms of the aligned peaks.
     """
-    peaklets = peaklets[(peaklets['dt']==dt)&(peaklets['area']>min_area)] 
-    aligned_wfs = np.zeros((len(peaklets),len(peaklets[0]['data'])))
-    #aligned_wfs[:,align_at:] = peaklets['data'][:,align_at:]/np.sum(peaklets['data'][:,:len(peaklets[0]['data'])-align_at],axis=1)[:,np.newaxis]
-    aligned_wfs = peaklets['data']/peaklets['area'][:,np.newaxis]
-    aligned_wfs[:,align_at:] = aligned_wfs[:,:len(peaklets[0]['data'])-align_at]
+    peaklets = peaklets[(peaklets['dt']==dt)&(peaklets['area']>min_area)]
+    time_ns = np.arange(10*len(peaklets[0]['data']))
+    time_10ns = np.arange(len(peaklets[0]['data'])) * 10
+    aligned_wfs = np.zeros((len(peaklets),10*len(peaklets[0]['data'])))
+    normalized = peaklets['data']/peaklets['area'][:,np.newaxis]
+    f = interpolate.interp1d(time_10ns, normalized, 
+                             axis=1, fill_value=(0,0), bounds_error=False)
+    
+    aligned_wfs = f(time_ns)
+    aligned_wfs[:,align_at:] = aligned_wfs[:,:len(peaklets[0]['data'])*10-align_at]
     aligned_wfs[:,:align_at] = 0
     return aligned_wfs
 
 
-def align_area_range(peaklets, percent=20, sample_per_wf=200, align_at=50, dt=10, min_area=18):
+def align_area_range(peaklets, percent=20, align_at=500, dt=10, min_area=18):
     """Align the waveform of peak level data at a certain point of area range.
     
     Args:
         peaklets (ndarray): Peak level data. 
         percent (int/float, optional): How many percent area range you want to find the time. Defaults to 20.
-        sample_per_wf (int, optional): Number of samples in the aligned waveform. Defaults to 110.
         align_at (int, optional): The output waveforms will be aligned at this index. Defaults to 50.
         dt (int, optional): Assumed time length for each sample in the waveform. Defaults to 10 ns.
         min_area (float, optional): Only align waveforms for these peaks who are larger than this number to kill bias in efficinecy.
@@ -45,39 +49,35 @@ def align_area_range(peaklets, percent=20, sample_per_wf=200, align_at=50, dt=10
         (2darray): 2d array of waveforms of the aligned peaks.
     """    
     peaklets = peaklets[(peaklets['dt']==dt)&(peaklets['area']>min_area)] 
-    area_percent_time = area_percent_times(peaklets, percent)
-    aligned_wfs = align_peaks_at_times(peaklets, area_percent_time, sample_per_wf, align_at)
+    area_percent_time, interped_wfs = area_percent_times(peaklets, percent)
+    aligned_wfs = align_peaks_at_times(interped_wfs, area_percent_time, align_at)
 
     return aligned_wfs
 
 
-def align_peaks_at_times(peaklets, align_time, sample_per_wf=200, align_at=50):
+def align_peaks_at_times(peaklets, align_time, align_at=500):
     """Align the waveform of peak level data at a certain point. We assign trivial 0s outside the 
     alignment range.
 
     Args:
-        peaklets (ndarray): Peak level data. Assumed sharing dt.
+        peaklets (ndarray): Interpolated wfs, at time resolution of 1 ns.
         align_time (ndarray): 1d array containing the time point to align
-        sample_per_wf (int, optional): Number of samples in the aligned waveform. Defaults to 110.
-        align_at (int, optional): The output waveforms will be aligned at this index. Defaults to 20.
+        align_at (int, optional): The output waveforms will be aligned at this time in unit of ns. Defaults to 500.
     
     Returns:
         (2darray): 2d array of waveforms of the aligned peaks.
     """    
-    aligned_wfs = np.zeros((len(peaklets),sample_per_wf))
-    dt = peaklets[0]['dt']
-    
-    assert len(np.unique(peaklets['dt'])==1)
+    aligned_wfs = np.zeros_like(peaklets)
     
     for i,p in enumerate(peaklets):
         # Find the closest sample to the alignment time
-        area_percent_sample_i = int(np.around(align_time[i]/dt))
+        area_percent_sample_i = align_time[i]
 
         start_sample_i = max(area_percent_sample_i-align_at, 0) 
-        end_sample_i = min(area_percent_sample_i+(sample_per_wf-align_at-1),len(p['data']))
+        end_sample_i = min(area_percent_sample_i+(len(p)-align_at-1),len(p))
 
         aligned_wfs[i][align_at-(area_percent_sample_i-start_sample_i):
-                       align_at+(end_sample_i-area_percent_sample_i)] = p['data'][start_sample_i:end_sample_i]
+                       align_at+(end_sample_i-area_percent_sample_i)] = p[start_sample_i:end_sample_i]
 
         # Normalization
         aligned_wfs[i] = aligned_wfs[i] / aligned_wfs[i].sum()
@@ -95,14 +95,19 @@ def area_percent_times(peaklets, percent=20):
     Returns:
         (ndarray): 1d array of time in unit of ns in each peaklets for the point to align.
     """    
+    # interpolate waveforms to have 1 ns time resolution
+    time_ns = np.arange(10*len(peaklets[0]['data']))
+    time_10ns = np.arange(len(peaklets[0]['data'])) * 10
+    interped_wfs = np.zeros((len(peaklets),10*len(peaklets[0]['data'])))
+    normalized = peaklets['data']/peaklets['area'][:,np.newaxis]
+    f = interpolate.interp1d(time_10ns, normalized, 
+                             axis=1, fill_value=(0,0), bounds_error=False)
+    
+    interped_wfs = f(time_ns)
     # Manually find the 50% area point by computing CDF ourselves.
-    midpoint_times = peaklets['dt']*np.argmin(abs(np.cumsum(peaklets['data'],axis=1) - 0.5*peaklets['area'][:,np.newaxis]),axis=1)
-
-    percent_index = percent // 10 # We only have percent area decile defined every ten.
-    # Based on area decile from mid point.
-    times = midpoint_times + peaklets['area_decile_from_midpoint'][:,percent_index]
-
-    return times
+    percent_times = np.argmin(abs(np.cumsum(interped_wfs,axis=1) - percent/100*np.sum(interped_wfs, axis=1)[:,np.newaxis]),axis=1)
+    
+    return percent_times, interped_wfs
 
 
 def delayed_sum(peaks, samples_delayed=4):
@@ -254,7 +259,7 @@ def sum_square_remainder(average_wf, individual_wfs):
     return sr
 
 
-def align_self_adjusted(peaks, dt=10, min_area=18, max_peaks=40000, align_at=50):
+def align_self_adjusted(peaks, dt=10, min_area=18, max_peaks=5000, align_at=500):
     '''Function self-align peaks based on the best signal correlation between them. 
     Notes by Daniel:
     https://xe1t-wiki.lngs.infn.it/doku.php?id=xenon:xenonnt:wenz:comissioning:tpc:gatti_filter
@@ -268,32 +273,42 @@ def align_self_adjusted(peaks, dt=10, min_area=18, max_peaks=40000, align_at=50)
     peaks = peaks[(peaks['dt']==dt)&(peaks['area']>min_area)] 
     peaks = peaks[:min(len(peaks), max_peaks)]
     n_peaks = len(peaks)
+    time_ns = np.arange(10*len(peaks[0]['data']))
+    time_10ns = np.arange(len(peaks[0]['data'])) * 10
+    interped_wfs = np.zeros((len(peaks),10*len(peaks[0]['data'])))
+    normalized = peaks['data']/peaks['area'][:,np.newaxis]
+    f = interpolate.interp1d(time_10ns, normalized, 
+                             axis=1, fill_value=(0,0), bounds_error=False)
+    
+    interped_wfs = f(time_ns)
+    interped_wfs = interped_wfs/ np.sum(interped_wfs, axis=1)[:,np.newaxis]
+    
     # Get first peak and align according to maximum.
-    p1 = peaks[0]['data'][:peaks[0]['length']]/peaks[0]['area']
-    start_index = 300-np.argmax(p1)
+    p1 = interped_wfs[0]
+    start_index = 3000-np.argmax(p1)
 
-    res = np.zeros((n_peaks, 600))
+    res = np.zeros((n_peaks, 6000))
     res[0][start_index:start_index+len(p1)] += p1
     for i in range(1, n_peaks):
-        p2 = peaks[i]['data'][:peaks[i]['length']]/peaks[i]['area']
+        p2 = interped_wfs[i]
         template = np.mean(res[:i], axis=0)
         corr = np.correlate(template, p2)
         shift = np.argmax(corr)
         res[i][shift:shift+len(p2)] = p2
     
-    result = np.zeros((n_peaks, len(peaks[0]['data'])))
-    result = res[:,300-align_at:300-align_at+len(peaks[0]['data'])]
+    result = np.zeros_like(interped_wfs)
+    result = res[:,3000-align_at:3000-align_at+len(interped_wfs)]
 
-    return result
+    return result[:,:10*len(peaks[0]['data'])]
 
 
-def get_avgwf(peaks, method='first_phr', dt=10, min_area=18, n_slices=10, align_at=50, plot=True, xlims=False):
+def get_avgwf(peaks, method='first_phr', dt=10, min_area=18, n_slices=10, align_at=500, plot=True, xlims=False):
     assert method in METHODS, 'Please use one of the following alignment techniques: %s'%(METHODS.keys())
     peaks = peaks[(peaks['dt']==dt)&(peaks['area']>min_area)] 
     z_slices = np.linspace(np.min(peaks['z']), np.max(peaks['z']), n_slices+1)
 
-    avg_wf_mean = np.zeros((n_slices, len(peaks[0]['data'])))
-    avg_wf_err = np.zeros((n_slices, len(peaks[0]['data'])))
+    avg_wf_mean = np.zeros((n_slices, 10*len(peaks[0]['data'])))
+    avg_wf_err = np.zeros((n_slices, 10*len(peaks[0]['data'])))
 
     for i in range(len(z_slices)-1):
         z_mask = (peaks['z']>=z_slices[i])&(peaks['z']<=z_slices[i+1])
@@ -305,14 +320,16 @@ def get_avgwf(peaks, method='first_phr', dt=10, min_area=18, n_slices=10, align_
             aligned_wfs = align_self_adjusted(peaks[z_mask], dt=dt, min_area=min_area, align_at=align_at)
         
         avg_wf_mean[i] = np.mean(aligned_wfs, axis=0)
-        avg_wf_err[i] = np.std(aligned_wfs, axis=0)/np.sqrt(np.sum(z_mask))
+        normalization = np.sum(avg_wf_mean[i])
+        avg_wf_mean[i] = avg_wf_mean[i]/normalization
+        avg_wf_err[i] = np.std(aligned_wfs, axis=0)/normalization
 
     if plot:
         import matplotlib as mpl
         plt.figure(dpi=200)
         colors = plt.get_cmap('jet', 10*n_slices+1)
         for i in range((len(z_slices)-1)):
-            plt.plot(np.arange(len(peaks[0]['data'])), avg_wf_mean[i], 
+            plt.plot(np.arange(10*len(peaks[0]['data'])), avg_wf_mean[i], 
                          color=colors(1+i*10), alpha=0.3, linewidth=1)
 
         norm = mpl.colors.Normalize(vmin=z_slices[0], vmax=z_slices[-1])
@@ -320,75 +337,78 @@ def get_avgwf(peaks, method='first_phr', dt=10, min_area=18, n_slices=10, align_
         sm1.set_array([])
         cb1 = plt.colorbar(sm1)
         cb1.set_label('depth [cm]')
-        plt.xlabel('sample [10ns]')
+        plt.xlabel('time [ns]')
         plt.title('Average waveform at different positions [method=%s]'%(method))
-        plt.xlim(max(0, align_at-10),max(0,  align_at-10)+60)
+        plt.xlim(max(0, align_at-100),max(0,  align_at-100)+600)
         plt.grid()
         if xlims:
             plt.xlim(xlims[0], xlims[1])
         else:
-            plt.xlim(align_at-10, align_at+50)
+            plt.xlim(align_at-100, align_at+500)
         plt.show()
 
     return avg_wf_mean, avg_wf_err
 
 
-def shift_avg_wfs(wf0_dt1, wf1_dt10, wf2_dt10):
+def shift_avg_wfs(wf0_dt1, wf1_dt1, wf2_dt1):
     """Align three average waveforms to plot, based on mean time. 
     Assumed wf0_dt1 is always leftmost. The returns will usually reduce the length of waveforms.
 
     Args:
         wf0_dt1 (1darray): waveform with dt=1ns. Usually wfsim original template.
-        wf1_dt10 (1darray): waveform with dt=10ns. Usually data reconstructed with alignment.
-        wf2_dt10 (1darray): waveform with dt=10ns. Usually wfsim reconstructed with alignment.
+        wf1_dt1 (1darray): waveform with dt=1ns. Usually data reconstructed with alignment.
+        wf2_dt1 (1darray): waveform with dt=1ns. Usually wfsim reconstructed with alignment.
     """
     xs0_dt1 = np.arange(len(wf0_dt1))
-    xs1_dt10 = np.arange(len(wf1_dt10))*10
-    xs2_dt10 = np.arange(len(wf2_dt10))*10
+    xs1_dt1 = np.arange(len(wf1_dt1))
+    xs2_dt1 = np.arange(len(wf2_dt1))
     
     init_mean_wf0 = np.sum(xs0_dt1 * wf0_dt1)
-    init_mean_wf1 = np.sum(xs1_dt10 * wf1_dt10)
-    init_mean_wf2 = np.sum(xs2_dt10 * wf2_dt10)
+    init_mean_wf1 = np.sum(xs1_dt1 * wf1_dt1)
+    init_mean_wf2 = np.sum(xs2_dt1 * wf2_dt1)
     
     # moving one sample, how much will the mean time be changed
     d_shift0 = 1
-    d_shift1 = 10
-    d_shift2 = 10
+    d_shift1 = 1
+    d_shift2 = 1
     
     # moving wf1 to first place left to wf0
     d_sample1 = int((init_mean_wf1 - init_mean_wf0)/d_shift1) + 1
     assert d_sample1 >= 0
     mean_wf1 = init_mean_wf1 - d_sample1 * d_shift1
-    wf1_dt10 = wf1_dt10[d_sample1:]
+    wf1_dt1 = wf1_dt1[d_sample1:]
     
     # moving wf2 to anywhere closest to wf1
     d_sample2 = int(np.around((init_mean_wf2 - mean_wf1)/d_shift2))
     assert d_sample2 >= 0
     mean_wf2 = init_mean_wf2 - d_sample2 * d_shift2
-    wf2_dt10 = wf2_dt10[d_sample2:]
+    wf2_dt1 = wf2_dt1[d_sample2:]
     
     # moving wf0 to anywhere closest to wf2
     d_sample0 = int(np.around((init_mean_wf0 - mean_wf2)/d_shift0))
     d_sample0 = max(d_sample0, 0)
     wf0_dt1 = wf0_dt1[d_sample0:]
+
+    xs1 = np.arange(len(wf1_dt1))
+    xs2 = np.arange(len(wf2_dt1))
     
-    return wf0_dt1, wf1_dt10, wf2_dt10
+    return wf0_dt1, wf1_dt1, wf2_dt1
 
 
-def shift_avg_wf(wf1_dt10, wf2_dt10, align_at=190):
+def shift_avg_wf(wf1_dt1, wf2_dt1, align_at=190):
     """Align two average waveforms to plot, based on mean time. 
     The returns will usually reduce the length of waveforms.
 
     Args:
-        wf1_dt10 (1darray): waveform with dt=10ns. Usually data reconstructed with alignment.
-        wf2_dt10 (1darray): waveform with dt=10ns. Usually wfsim reconstructed with alignment.
+        wf1_dt1 (1darray): waveform with dt=10ns. Usually data reconstructed with alignment.
+        wf2_dt1 (1darray): waveform with dt=10ns. Usually wfsim reconstructed with alignment.
         align_at (float): align point of mean time in unit of ns.
     """
-    xs1_dt10 = np.arange(len(wf1_dt10))*10
-    xs2_dt10 = np.arange(len(wf2_dt10))*10
+    xs1_dt1 = np.arange(len(wf1_dt1))
+    xs2_dt1 = np.arange(len(wf2_dt1))
     
-    init_mean_wf1 = np.sum(xs1_dt10 * wf1_dt10)
-    init_mean_wf2 = np.sum(xs2_dt10 * wf2_dt10)
+    init_mean_wf1 = np.sum(xs1_dt1 * wf1_dt1)
+    init_mean_wf2 = np.sum(xs2_dt1 * wf2_dt1)
     
     # moving one sample, how much will the mean time be changed
     d_shift1 = 10
@@ -398,12 +418,12 @@ def shift_avg_wf(wf1_dt10, wf2_dt10, align_at=190):
     d_sample1 = int((init_mean_wf1 - align_at)/d_shift1) + 1
     assert d_sample1 >= 0
     mean_wf1 = init_mean_wf1 - d_sample1 * d_shift1
-    wf1_dt10 = wf1_dt10[d_sample1:]
+    wf1_dt1 = wf1_dt1[d_sample1:]
     
     # moving wf2 to anywhere closest to wf1
     d_sample2 = int(np.around((init_mean_wf2 - mean_wf1)/d_shift2))
     assert d_sample2 >= 0
     mean_wf2 = init_mean_wf2 - d_sample2 * d_shift2
-    wf2_dt10 = wf2_dt10[d_sample2:]
+    wf2_dt1 = wf2_dt1[d_sample2:]
     
-    return wf1_dt10, wf2_dt10
+    return wf1_dt1, wf2_dt1
