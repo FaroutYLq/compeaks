@@ -74,7 +74,7 @@ def get_peak_extra(signal_type, runid=False, straxen_config={}, **kargs):
     return peak_extra
 
 
-def get_avgwfs(peak_extra, signal_type, method='first_phr', xlims=(400,900)):
+def get_avgwfs(peak_extra, signal_type, method='first_phr', xlims=(400,900), spline_file=None, pattern_map_file=None):
     """Wrapper around data/wfsim average waveform getter.
 
     Args:
@@ -82,6 +82,8 @@ def get_avgwfs(peak_extra, signal_type, method='first_phr', xlims=(400,900)):
         signal_type (str): examples: ['KrS1A', 'KrS1B', 'ArS1', 'sim_KrS1A', 'sim_KrS1B', 'sim_ArS1', 'sim_AmBe']
         method (str, optional): alignment technique. For example: {'first_phr', 'area_range', 'self_adjusted'}. Defaults to 'first_phr'.
         xlims (tuple, optional): range of plot of the average waveforms. Defaults to (40,90).
+        spline_file: pointer to s1 optical propagation splines from resources.
+        pattern_map_file (str): path to map.
 
     Returns:
         wfsim_template (ndarray, optional): Will be returned only if signal type is sim. Analytic S1 template in wfsim. axis0 = depth, axis1 = wf samples.
@@ -89,9 +91,16 @@ def get_avgwfs(peak_extra, signal_type, method='first_phr', xlims=(400,900)):
     """
     if signal_type[:3] == 'sim':
         print('Computing analytic %s wfsim S1 template...'%(signal_type))
-        wfsim_template = sims1.get_s1_templates(interaction_type=INTERACTION_TYPES[signal_type], 
-                                                e_dep=ENERGY_DEPOSIT[signal_type])
-        
+        if spline_file!=None and pattern_map_file!=None:
+            wfsim_template = sims1.get_s1_templates(interaction_type=INTERACTION_TYPES[signal_type], 
+                                                    e_dep=ENERGY_DEPOSIT[signal_type],
+                                                    spline_file=spline_file, 
+                                                    pattern_map_file=pattern_map_file)
+        else:
+            # use default maps
+            wfsim_template = sims1.get_s1_templates(interaction_type=INTERACTION_TYPES[signal_type], 
+                                                    e_dep=ENERGY_DEPOSIT[signal_type]) 
+            
         wfsim_template = wfsim_template/np.sum(wfsim_template, axis=1)[:,np.newaxis]
         print('Computing aligned reconstucted wfsim %s average waveform with method %s...'%(signal_type, method))
         avg_wf_mean, _ = alignment.get_avgwf(peak_extra, 

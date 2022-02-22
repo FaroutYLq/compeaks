@@ -251,7 +251,7 @@ def sims1(z_position, interaction_type, e_dep,
         z_position (float): The Z positions of all s1 photon.
         interaction_type (int): Following the NEST type of intereaction.
         e_dep (float): energy deposit in unit of keV
-        spline_file: pointer to s1 optical propagation splines from resources.
+        spline_file (str): pointer to s1 optical propagation splines from resources.
         pattern_map_file (str): path to map. eg. '/dali/lgrandi/xenonnt/simulations/optphot/mc_v4.1.0/S1_1.63_0.99_0.99_0.99_0.99_5500_10000_30/XENONnT_S1_xyz_patterns_LCE_corrected_QEs_MCv4.1.0_wires.pkl' 
         config_file (str, optional): Configuration file name. Defaults to 'fax_config_nt_sr0_v0.json'.
     """
