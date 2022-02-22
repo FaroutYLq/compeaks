@@ -35,6 +35,8 @@ COMPARISON_SPACES = [('z', 'area_fraction_top'),
                      ('z', 'rise_time'), 
                      ('z', 'range_50p_area'),
                      ('z', 'range_90p_area'),
+                     ('z', 'area'),
+                     ('z', 'area_normalized'),
                      ('area_fraction_top','rise_time')]
 
 ZSLIACES = np.array([-128, -116, -104,  -92, -79,  -67,  -55,  -43, -31,  -19])
@@ -105,6 +107,21 @@ def get_avgwfs(peak_extra, signal_type, method='first_phr', xlims=(400,900)):
         return avg_wf_mean
 
 
+def compute_rise_time(wf):
+    """Compute the rise time based on average waveform.
+
+    Args:
+        wf (1darray): average waveform in a 1d vector
+
+    Returns:
+        (int): number of sample characterizing rise time.
+    """
+    cdf = np.cumsum(wf)
+    ind_10 = np.argmin(abs(cdf - 0.1*cdf[-1]))
+    ind_50 = np.argmin(abs(cdf - 0.5*cdf[-1]))
+    return ind_50 - ind_10
+
+
 def compare_avgwfs(signal_type0, signal_type1, avg_wf_mean0, avg_wf_mean1, method, wfsim_template=False):
     """Plot generator for average pulse shape comparison at certain Z slices.
 
@@ -126,34 +143,34 @@ def compare_avgwfs(signal_type0, signal_type1, avg_wf_mean0, avg_wf_mean1, metho
     
     # Comparing data VS data
     print('Now comparing %s and %s average waveforms at different depth...'%(signal_type0, signal_type1))
+    fig, axs = plt.subplots(nrows=3, ncols=4, figsize=(15,15), dpi=400)
     for i in range(10):
+        j = i // 4
+
         if is_sim0 == False and is_sim1 == False:
             wf0, wf1 = alignment.shift_avg_wf(avg_wf_mean0[i], avg_wf_mean1[i])
         
-            plt.figure(dpi=200)
-            plt.plot(np.arange(len(wf0)), wf0, label=signal_type0)
-            plt.plot(np.arange(len(wf1)), wf1, label=signal_type1)
-            plt.legend()
-            plt.xlim(0,500)
-            plt.grid()
-            plt.xlabel('time [ns]')
-            plt.title('%s at %scm'%(method, ZSLIACES[i]))
-            plt.show()
+            axs[j, i-4*j].plot(np.arange(len(wf0)), wf0, label=signal_type0+':'+str(compute_rise_time(wf0))+'ns')
+            axs[j, i-4*j].plot(np.arange(len(wf1)), wf1, label=signal_type1+':'+str(compute_rise_time(wf1))+'ns')
+            axs[j, i-4*j].legend()
+            axs[j, i-4*j].set_xlim(0,500)
+            axs[j, i-4*j].grid()
+            axs[j, i-4*j].set_xlabel('time [ns]')
+            axs[j, i-4*j].set_title('%s at %scm'%(method, ZSLIACES[i]))
 
         else:
             assert type(wfsim_template)!=bool, 'You are comparing data and wfsim, you must input a wfsim template for reference'
             template, wf0, wf1 = alignment.shift_avg_wfs(wf0_dt1=wfsim_template[i], 
                                                          wf1_dt1=avg_wf_mean0[i], 
                                                          wf2_dt1=avg_wf_mean1[i])
-            plt.figure(dpi=200)
-            plt.plot(np.arange(len(template)), template, label='%s template'%(signal_type1))
-            plt.plot(np.arange(len(wf0)), wf0, label=signal_type0)
-            plt.plot(np.arange(len(wf1)), wf1, label=signal_type1)
-            plt.legend()
-            plt.xlim(0,500)
-            plt.xlabel('time [ns]')
-            plt.title('%s at %scm'%(method, ZSLIACES[i]))
-            plt.show()
+            axs[j, i-4*j].plot(np.arange(len(template)), template, label='%s template'%(signal_type1))
+            axs[j, i-4*j].plot(np.arange(len(wf0)), wf0, label=signal_type0+':'+str(compute_rise_time(wf0))+'ns')
+            axs[j, i-4*j].plot(np.arange(len(wf1)), wf1, label=signal_type1+':'+str(compute_rise_time(wf1))+'ns')
+            axs[j, i-4*j].legend()
+            axs[j, i-4*j].grid()
+            axs[j, i-4*j].set_xlim(0,500)
+            axs[j, i-4*j].set_xlabel('time [ns]')
+            axs[j, i-4*j].set_title('%s at %scm'%(method, ZSLIACES[i]))
 
 
 def compare_2para(peak_extra0, peak_extra1, signal_type0, signal_type1, 
@@ -167,16 +184,28 @@ def compare_2para(peak_extra0, peak_extra1, signal_type0, signal_type1,
         signal_type1 (str): Please put wfsim here if you want to involve wfsim comparison! examples: ['KrS1A', 'KrS1B', 'ArS1', 'sim_KrS1A', 'sim_KrS1B', 'sim_ArS1', 'sim_AmBe']
         comparison_spaces (array-like, optional): axis0=parameter spaces, axis1=parameter names. Defaults to COMPARISON_SPACES.
     """
-    for space in comparison_spaces:
-        compare2d(x1s=peak_extra0[space[0]], y1s=peak_extra0[space[1]], 
-                  x2s=peak_extra1[space[0]], y2s=peak_extra1[space[1]],  
-                  n_x=20, 
-                  xlabel=space[0], ylabel=space[1], 
-                  label1=signal_type0, label2=signal_type1)
+    fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(15,15), dpi=300)
+    for i,space in enumerate(comparison_spaces):
+        j = i//3
+
+        if space == ('z', 'area_normalized'):
+            compare2d(x1s=peak_extra0[space[0]], y1s=peak_extra0['area'], 
+                      x2s=peak_extra1[space[0]], y2s=peak_extra1['area'],  
+                      n_x=20, 
+                      xlabel=space[0], ylabel=space[1], 
+                      label1=signal_type0, label2=signal_type1,
+                      ax = axs[j, i-j*3])
+        else:
+            compare2d(x1s=peak_extra0[space[0]], y1s=peak_extra0[space[1]], 
+                      x2s=peak_extra1[space[0]], y2s=peak_extra1[space[1]],  
+                      n_x=20, 
+                      xlabel=space[0], ylabel=space[1], 
+                      label1=signal_type0, label2=signal_type1,
+                      ax = axs[j, i-j*3])
 
 
 def compare2d(x1s, y1s, x2s, y2s, x_range=False, y_range=False, n_x=20, logx=False, logy=False, sigma_mu=False,
-              title='', xlabel='', ylabel='', label1='', label2='', x3s=False, y3s=False):
+              title='', xlabel='', ylabel='', label1='', label2='', x3s=False, y3s=False, ax=None):
     """2D parameter space comparison.
     """
     if not x_range:
@@ -204,31 +233,35 @@ def compare2d(x1s, y1s, x2s, y2s, x_range=False, y_range=False, n_x=20, logx=Fal
         y1_cnt[i] = len(y1s[mask1])
         y2_cnt[i] = len(y2s[mask2])
         
-    plt.figure(dpi=200)
+
+    if ylabel=='area_normalized':
+        y1_std = y1_std/y1_std[0]
+        y2_std = y2_std/y2_std[0]
+        y1_avg = y1_avg/y1_avg[0]
+        y2_avg = y2_avg/y2_avg[0]
+
     if sigma_mu:
-        plt.errorbar(x_bins_center, y1_avg, y1_std/np.sqrt(y1_cnt), label=label1)
-        plt.errorbar(x_bins_center+0.15*x_bin_size, y2_avg, y2_std/np.sqrt(y2_cnt), label=label2)
+        ax.errorbar(x_bins_center, y1_avg, y1_std/np.sqrt(y1_cnt), label=label1)
+        ax.errorbar(x_bins_center+0.15*x_bin_size, y2_avg, y2_std/np.sqrt(y2_cnt), label=label2)
     else:
-        plt.errorbar(x_bins_center, y1_avg, y1_std, label=label1)
-        plt.errorbar(x_bins_center+0.15*x_bin_size, y2_avg, y2_std, label=label2)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.title(title)
+        ax.errorbar(x_bins_center, y1_avg, y1_std, label=label1)
+        ax.errorbar(x_bins_center+0.15*x_bin_size, y2_avg, y2_std, label=label2)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
     if not (label1=='' and label2==''):
-        plt.legend()
+        ax.legend()
     if logx:
-        plt.xscale('log')
+        ax.set_xscale('log')
     if logy:
-        plt.yscale('log')
+        ax.set_yscale('log')
        
     if x3s == False and y3s == False:
         pass
     elif x3s.any() and y3s.any():
-        plt.plot(x3s, y3s, color='r')
+        ax.plot(x3s, y3s, color='r')
         
-    plt.grid()
-    plt.tight_layout()
-    
-    plt.show()
+    ax.grid()
+
         
     
