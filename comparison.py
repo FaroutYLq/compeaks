@@ -57,16 +57,24 @@ def get_peak_extra(signal_type, runid=False, straxen_config={}, **kargs):
     print('Loading peak_extra now, please be patient...')
     if signal_type[:3] != 'sim': 
         print('Loading peak extra from data')
-        peak_extra = extraction.get_data_peak_extra(signal_type=signal_type)
+        if type(runid)==bool:
+            print(runid)
+            print('Loading default runs from data')
+            peak_extra = extraction.get_data_peak_extra(signal_type=signal_type)
+        else:
+            print('Loading selected runs from data')
+            peak_extra = extraction.get_data_peak_extra(signal_type=signal_type, runs=runid)
     # wfsim
     else:
         print('Loading peak extra from wfsim')
         if type(runid)==bool:
+            print('Loading default runs from sim')
             peak_extra = simwrap.get_sim_peak_extra(runid=DEFAULT_SIM_RUNS[signal_type], 
                                                     interaction_type=INTERACTION_TYPES[signal_type], 
                                                     energy=ENERGY_DEPOSIT[signal_type],
                                                     **kargs)
         else:
+            print('Loading selected runs from sim')
             peak_extra = simwrap.get_sim_peak_extra(runid=runid, 
                                                     interaction_type=INTERACTION_TYPES[signal_type], 
                                                     energy=ENERGY_DEPOSIT[signal_type],
