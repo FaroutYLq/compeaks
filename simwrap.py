@@ -145,6 +145,8 @@ def sim_peak_extra(peaks, peak_basics, truth, match):
         (('Fraction of area seen by the top array '
           '(NaN for peaks with non-positive area)',
             'area_fraction_top'), np.float32),
+        (('Integral per channel [PE]',
+          'area_per_channel'), np.float32, 494),
         (('Length of the peak waveform in samples',
           'length'), np.int32),
         (('Time resolution of the peak waveform in ns',
@@ -163,6 +165,12 @@ def sim_peak_extra(peaks, peak_basics, truth, match):
           'data'), np.float32, NSUMWVSAMPLES),
         (('Peak widths: time between nth and 5th area decile [ns]',
           'area_decile_from_midpoint'), np.float32, NWIDTHS),
+        (('Peak widths in range of central area fraction [ns]',
+          'width'), np.float32, NWIDTHS),
+        (('Largest gap between hits inside peak [ns]',
+          'max_gap'), np.int32),
+        (('Maximum interior goodness of split',
+          'max_goodness_of_split'), np.float32),
         (('x coordinates', 'x'), np.float32),
         (('y coordinates', 'y'),np.float32),
         (('z coordinates', 'z'), np.float32),
@@ -179,7 +187,9 @@ def sim_peak_extra(peaks, peak_basics, truth, match):
     
     for i in range(len(dtypes)):
         field = dtypes[i][0][1]
-        if field == 'data' or field == 'area_decile_from_midpoint' or field=='n_hits':
+        if (field == 'data') or (field == 'area_decile_from_midpoint') or (
+            field=='n_hits') or (field=='area_per_channel') or (
+            field=='width') or (field=='max_gap') or (field=='max_goodness_of_split'):
             peak_extra[field] = peaks[field]
         elif field == 'x' or field == 'y' or field == 'z':
             peak_extra[field] = truth[field]
