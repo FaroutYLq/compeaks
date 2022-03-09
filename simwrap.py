@@ -19,8 +19,10 @@ NWIDTHS = 11
 INT_NAN = -99999
 FAX_CONFIG_DEFAULT={
         's1_model_type': 'nest+optical_propagation',
-        's1_pattern_map': '/dali/lgrandi/xenonnt/simulations/optphot/mc_v4.1.0/S1_1.69_0.99_0.99_0.99_0.99_10000_100_30/XENONnT_S1_xyz_patterns_LCE_corrected_QEs_MCv4.1.0_wires.pkl',
+        's1_pattern_map': 'XENONnT_s1_xyz_patterns_LCE_corrected_qes_MCva43fa9b_wires.pkl',
         's1_time_spline': 'XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz',
+        #'s1_pattern_map': '/dali/lgrandi/xenonnt/simulations/optphot/mc_v4.1.0/S1_1.69_0.99_0.99_0.99_0.99_10000_100_30/XENONnT_S1_xyz_patterns_LCE_corrected_QEs_MCv4.1.0_wires.pkl',
+        #'s1_time_spline': 'XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz',
         'enable_noise': True,
         'enable_electron_afterpulses': False,
         'enable_pmt_afterpulses': False,

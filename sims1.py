@@ -162,7 +162,7 @@ def interp_aft(z_position):
 
 def propagation(z_position, 
                 spline_file='XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz',
-                pattern_map_file='/dali/lgrandi/xenonnt/simulations/optphot/mc_v4.1.0/S1_1.69_0.99_0.99_0.99_0.99_10000_100_30/XENONnT_S1_xyz_patterns_LCE_corrected_QEs_MCv4.1.0_wires.pkl'):
+                pattern_map_file='XENONnT_s1_xyz_patterns_LCE_corrected_qes_MCva43fa9b_wires.pkl'):
     """Function gettting times from s1 timing splines. Weighted based on aft.
 
     Args:
@@ -243,7 +243,7 @@ def spe(config_file='fax_config_nt_sr0_v0.json'):
 
 def sims1(z_position, interaction_type, e_dep,
           spline_file='XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz', 
-          pattern_map_file = '/dali/lgrandi/xenonnt/simulations/optphot/mc_v4.1.0/S1_1.69_0.99_0.99_0.99_0.99_10000_100_30/XENONnT_S1_xyz_patterns_LCE_corrected_QEs_MCv4.1.0_wires.pkl',
+          pattern_map_file = 'XENONnT_s1_xyz_patterns_LCE_corrected_qes_MCva43fa9b_wires.pkl',
           config_file='fax_config_nt_sr0_v0.json'):
     """Do as what wfsim does, give the S1 pulse shape of certain type interaction at certain depth.
 
@@ -270,7 +270,7 @@ def sims1(z_position, interaction_type, e_dep,
 
 def get_s1_templates(interaction_type, e_dep, z_positions=ZSLIACES,
                      spline_file='XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz', 
-                     pattern_map_file = '/dali/lgrandi/xenonnt/simulations/optphot/mc_v4.1.0/S1_1.69_0.99_0.99_0.99_0.99_10000_100_30/XENONnT_S1_xyz_patterns_LCE_corrected_QEs_MCv4.1.0_wires.pkl',
+                     pattern_map_file = 'XENONnT_s1_xyz_patterns_LCE_corrected_qes_MCva43fa9b_wires.pkl',
                      config_file='fax_config_nt_sr0_v0.json',
                      plot=True):
     """Get s1 templates based on wfsim from different depth slices.
