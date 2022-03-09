@@ -303,7 +303,7 @@ def sr0_auto_plots(signal_type = ['ArS1', 'KrS1A'], method = 'first_phr',
     for sig_type in signal_type:
         gc.collect()
         print('Comparing %s'%(sig_type))
-        
+
         sim_peak_extra = get_peak_extra('sim_'+sig_type,
                                                         s1_pattern_map = s1_pattern_map,
                                                         s1_time_spline = s1_time_spline)
@@ -315,5 +315,5 @@ def sr0_auto_plots(signal_type = ['ArS1', 'KrS1A'], method = 'first_phr',
         compare_avgwfs(signal_type0=sig_type, signal_type1='sim_'+sig_type, 
                        avg_wf_mean0=avg_wf_mean, avg_wf_mean1=sim_avg_wf_mean, 
                        method=method, wfsim_template=template)
-        compare_2para(peak_extra0=peak_extra, peak_extra1=sim_ars1_peak_extra, 
+        compare_2para(peak_extra0=peak_extra, peak_extra1=sim_peak_extra, 
                       signal_type0=sig_type, signal_type1='sim_'+sig_type)
