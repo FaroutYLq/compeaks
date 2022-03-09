@@ -5,6 +5,7 @@ import sims1
 import simwrap
 import alignment
 import extraction
+import gc
 
 AR_AVAILABLE = np.array(['034160', '033781', '033492', '033492', '033582', '033823',
        '033841', '034145', '033555', '033573', '034211', '034076',
@@ -58,7 +59,6 @@ def get_peak_extra(signal_type, runid=False, straxen_config={}, **kargs):
     if signal_type[:3] != 'sim': 
         print('Loading peak extra from data')
         if type(runid)==bool:
-            print(runid)
             print('Loading default runs from data')
             peak_extra = extraction.get_data_peak_extra(signal_type=signal_type)
         else:
@@ -82,7 +82,7 @@ def get_peak_extra(signal_type, runid=False, straxen_config={}, **kargs):
     return peak_extra
 
 
-def get_avgwfs(peak_extra, signal_type, method='first_phr', xlims=(400,900), spline_file=None, pattern_map_file=None):
+def get_avgwfs(peak_extra, signal_type, method='first_phr', xlims=(400,900), spline_file=None, pattern_map_file=None, plot=False):
     """Wrapper around data/wfsim average waveform getter.
 
     Args:
@@ -92,6 +92,7 @@ def get_avgwfs(peak_extra, signal_type, method='first_phr', xlims=(400,900), spl
         xlims (tuple, optional): range of plot of the average waveforms. Defaults to (40,90).
         spline_file: pointer to s1 optical propagation splines from resources.
         pattern_map_file (str): path to map.
+        plot (bool): whether to show the plots for average waveforms?
 
     Returns:
         wfsim_template (ndarray, optional): Will be returned only if signal type is sim. Analytic S1 template in wfsim. axis0 = depth, axis1 = wf samples.
@@ -103,23 +104,25 @@ def get_avgwfs(peak_extra, signal_type, method='first_phr', xlims=(400,900), spl
             wfsim_template = sims1.get_s1_templates(interaction_type=INTERACTION_TYPES[signal_type], 
                                                     e_dep=ENERGY_DEPOSIT[signal_type],
                                                     spline_file=spline_file, 
-                                                    pattern_map_file=pattern_map_file)
+                                                    pattern_map_file=pattern_map_file,
+                                                    plot=plot)
         else:
             # use default maps
             wfsim_template = sims1.get_s1_templates(interaction_type=INTERACTION_TYPES[signal_type], 
-                                                    e_dep=ENERGY_DEPOSIT[signal_type]) 
+                                                    e_dep=ENERGY_DEPOSIT[signal_type],
+                                                    plot=plot) 
             
         wfsim_template = wfsim_template/np.sum(wfsim_template, axis=1)[:,np.newaxis]
         print('Computing aligned reconstucted wfsim %s average waveform with method %s...'%(signal_type, method))
         avg_wf_mean, _ = alignment.get_avgwf(peak_extra, 
-                                                      method=method, xlims=xlims)
+                                                      method=method, xlims=xlims, plot=plot)
         avg_wf_mean = avg_wf_mean/np.sum(avg_wf_mean, axis=1)[:,np.newaxis]
         return wfsim_template, avg_wf_mean
 
     else:
         print('Computing aligned reconstucted data %s average waveform with method %s...'%(signal_type, method))
         avg_wf_mean, _ = alignment.get_avgwf(peak_extra, 
-                                                      method=method, xlims=xlims)
+                                                      method=method, xlims=xlims, plot=plot)
         avg_wf_mean = avg_wf_mean/np.sum(avg_wf_mean, axis=1)[:,np.newaxis]
         return avg_wf_mean
 
@@ -188,6 +191,8 @@ def compare_avgwfs(signal_type0, signal_type1, avg_wf_mean0, avg_wf_mean1, metho
             axs[j, i-4*j].set_xlim(0,500)
             axs[j, i-4*j].set_xlabel('time [ns]')
             axs[j, i-4*j].set_title('%s at %scm'%(method, ZSLIACES[i]))
+    
+    fig.suptitle('%s VS %s'%(signal_type0, signal_type1), fontsize=25, y=0.93)
 
 
 def compare_2para(peak_extra0, peak_extra1, signal_type0, signal_type1, 
@@ -219,6 +224,8 @@ def compare_2para(peak_extra0, peak_extra1, signal_type0, signal_type1,
                       xlabel=space[0], ylabel=space[1], 
                       label1=signal_type0, label2=signal_type1,
                       ax = axs[j, i-j*3])
+
+    fig.suptitle('%s VS %s'%(signal_type0, signal_type1), fontsize=25, y=0.93)
 
 
 def compare2d(x1s, y1s, x2s, y2s, x_range=False, y_range=False, n_x=20, logx=False, logy=False, sigma_mu=False,
@@ -280,5 +287,33 @@ def compare2d(x1s, y1s, x2s, y2s, x_range=False, y_range=False, n_x=20, logx=Fal
         
     ax.grid()
 
-        
+
+def sr0_auto_plots(signal_type = ['ArS1', 'KrS1A'], method = 'first_phr',
+                   s1_pattern_map = 'XENONnT_s1_xyz_patterns_LCE_corrected_qes_MCva43fa9b_wires.pkl', 
+                   s1_time_spline = 'XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz'):
+    """Automatically generate comparison plots given optical maps.
+
+    Args:
+        signal_type (list, optional): please put data here if you want to involve data in comparison!. Defaults to ['ArS1', 'KrS1A'].
+        method (str, optional): method (str, optional): alignment technique. For example: {'first_phr', 'area_range', 'self_adjusted'}. Defaults to 'first_phr'.
+        s1_pattern_map (str, optional): path to s1 pattern map from resources. Defaults to 'XENONnT_s1_xyz_patterns_LCE_corrected_qes_MCva43fa9b_wires.pkl'.
+        s1_time_spline (str, optional): path to s1 optical propagation splines from resources. Defaults to 'XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz'.
+    """
     
+    for sig_type in signal_type:
+        gc.collect()
+        print('Comparing %s'%(sig_type))
+        
+        sim_peak_extra = get_peak_extra('sim_'+sig_type,
+                                                        s1_pattern_map = s1_pattern_map,
+                                                        s1_time_spline = s1_time_spline)
+        peak_extra = get_peak_extra(signal_type=sig_type)
+
+        avg_wf_mean = get_avgwfs(peak_extra=peak_extra, signal_type=sig_type, method=method)
+        template, sim_avg_wf_mean = get_avgwfs(peak_extra=sim_peak_extra, signal_type='sim_'+sig_type, method=method)
+
+        compare_avgwfs(signal_type0=sig_type, signal_type1='sim_'+sig_type, 
+                       avg_wf_mean0=avg_wf_mean, avg_wf_mean1=sim_avg_wf_mean, 
+                       method=method, wfsim_template=template)
+        compare_2para(peak_extra0=peak_extra, peak_extra1=sim_ars1_peak_extra, 
+                      signal_type0=sig_type, signal_type1='sim_'+sig_type)
