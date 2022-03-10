@@ -38,7 +38,9 @@ COMPARISON_SPACES = [('z', 'area_fraction_top'),
                      ('z', 'range_90p_area'),
                      ('z', 'area'),
                      ('z', 'area_normalized'),
-                     ('area_fraction_top','rise_time')]
+                     ('area_fraction_top','rise_time'),
+                     ('area', 'range_50p_area'),
+                     ('area', 'rise_time')]
 
 ZSLIACES = np.array([-128, -116, -104,  -92, -79,  -67,  -55,  -43, -31,  -19])
 
@@ -115,14 +117,14 @@ def get_avgwfs(peak_extra, signal_type, method='first_phr', xlims=(400,900), spl
         wfsim_template = wfsim_template/np.sum(wfsim_template, axis=1)[:,np.newaxis]
         print('Computing aligned reconstucted wfsim %s average waveform with method %s...'%(signal_type, method))
         avg_wf_mean, _ = alignment.get_avgwf(peak_extra, 
-                                                      method=method, xlims=xlims, plot=plot)
+                                             method=method, xlims=xlims, plot=plot)
         avg_wf_mean = avg_wf_mean/np.sum(avg_wf_mean, axis=1)[:,np.newaxis]
         return wfsim_template, avg_wf_mean
 
     else:
         print('Computing aligned reconstucted data %s average waveform with method %s...'%(signal_type, method))
         avg_wf_mean, _ = alignment.get_avgwf(peak_extra, 
-                                                      method=method, xlims=xlims, plot=plot)
+                                             method=method, xlims=xlims, plot=plot)
         avg_wf_mean = avg_wf_mean/np.sum(avg_wf_mean, axis=1)[:,np.newaxis]
         return avg_wf_mean
 
@@ -193,6 +195,7 @@ def compare_avgwfs(signal_type0, signal_type1, avg_wf_mean0, avg_wf_mean1, metho
             axs[j, i-4*j].set_title('%s at %scm'%(method, ZSLIACES[i]))
     
     fig.suptitle('%s VS %s'%(signal_type0, signal_type1), fontsize=25, y=0.93)
+    fig.show()
 
 
 def compare_2para(peak_extra0, peak_extra1, signal_type0, signal_type1, 
@@ -226,6 +229,7 @@ def compare_2para(peak_extra0, peak_extra1, signal_type0, signal_type1,
                       ax = axs[j, i-j*3])
 
     fig.suptitle('%s VS %s'%(signal_type0, signal_type1), fontsize=25, y=0.93)
+    fig.show()
 
 
 def compare2d(x1s, y1s, x2s, y2s, x_range=False, y_range=False, n_x=20, logx=False, logy=False, sigma_mu=False,
@@ -305,12 +309,14 @@ def sr0_auto_plots(signal_type = ['ArS1', 'KrS1A'], method = 'first_phr',
         print('Comparing %s'%(sig_type))
 
         sim_peak_extra = get_peak_extra('sim_'+sig_type,
-                                                        s1_pattern_map = s1_pattern_map,
-                                                        s1_time_spline = s1_time_spline)
+                                        s1_pattern_map = s1_pattern_map,
+                                        s1_time_spline = s1_time_spline)
         peak_extra = get_peak_extra(signal_type=sig_type)
 
         avg_wf_mean = get_avgwfs(peak_extra=peak_extra, signal_type=sig_type, method=method)
-        template, sim_avg_wf_mean = get_avgwfs(peak_extra=sim_peak_extra, signal_type='sim_'+sig_type, method=method)
+        template, sim_avg_wf_mean = get_avgwfs(peak_extra=sim_peak_extra, signal_type='sim_'+sig_type, method=method,
+                                               spline_file=s1_time_spline, 
+                                               pattern_map_file=s1_pattern_map)
 
         compare_avgwfs(signal_type0=sig_type, signal_type1='sim_'+sig_type, 
                        avg_wf_mean0=avg_wf_mean, avg_wf_mean1=sim_avg_wf_mean, 
