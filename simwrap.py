@@ -21,15 +21,13 @@ FAX_CONFIG_DEFAULT={
         's1_model_type': 'nest+optical_propagation',
         's1_pattern_map': 'XENONnT_s1_xyz_patterns_LCE_corrected_qes_MCva43fa9b_wires.pkl',
         's1_time_spline': 'XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz',
-        #'s1_pattern_map': '/dali/lgrandi/xenonnt/simulations/optphot/mc_v4.1.0/S1_1.69_0.99_0.99_0.99_0.99_10000_100_30/XENONnT_S1_xyz_patterns_LCE_corrected_QEs_MCv4.1.0_wires.pkl',
-        #'s1_time_spline': 'XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz',
         'enable_noise': True,
         'enable_electron_afterpulses': False,
         'enable_pmt_afterpulses': False,
     }
 
 
-def instruction(interaction_type, energy, N_events=1):  
+def instruction(interaction_type, energy, N_events=1):
     """Generate simulation instruction.
     nr=0, wimp=1, b8=2, dd=3, ambe=4, cf=5, ion=6, gammaray=7,
     beta=8, ch3t=9, c14=10, kr83m=11, nonetype=12
