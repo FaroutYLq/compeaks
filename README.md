@@ -10,7 +10,7 @@ Specify the optical maps, then choose signal types to compare and alignment meth
 s1_pattern_map = '/dali/lgrandi/xenonnt/simulations/optphot/mc_v4.1.0/S1_1.69_0.99_0.99_0.99_0.99_10000_100_30/XENONnT_S1_xyz_patterns_LCE_corrected_QEs_MCv4.1.0_wires.pkl'
 s1_time_spline ='XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz'
 
-comparison.sr0_auto_plots(signal_type = ['ArS1', 'KrS1A'], method = 'first_phr',
+comparison.sr0_auto_plots(signal_type = ['ArS1', 'KrS1B', 'KrS1A'], method = 'first_phr',
                           s1_pattern_map = s1_pattern_map, 
                           s1_time_spline = s1_time_spline)
 ```
