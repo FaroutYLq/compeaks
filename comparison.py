@@ -29,7 +29,7 @@ KR_AVAILABLE = np.array(['018223', '018834', '030532', '030430', '030403', '0233
 
 SUPPORTED_SIGNALS = ['KrS1A', 'KrS1B', 'ArS1', 'sim_KrS1A', 'sim_KrS1B', 'sim_ArS1', 'sim_AmBe']
 ENERGY_DEPOSIT = {'sim_KrS1A': 32, 'sim_KrS1B': 9, 'sim_ArS1': 2.8, 'sim_AmBe': [2,20]}
-INTERACTION_TYPES = {'sim_KrS1A': 11, 'sim_KrS1B': 11, 'sim_ArS1': 7, 'sim_AmBe': 4}
+INTERACTION_TYPES = {'sim_KrS1A': 7, 'sim_KrS1B': 7, 'sim_ArS1': 7, 'sim_AmBe': 4}
 DEFAULT_SIM_RUNS = {'sim_KrS1A': 'kr83ms1a_t1', 'sim_KrS1B': 'kr83ms1b_t1', 'sim_ArS1': 'ar37s1_t1', 'sim_AmBe':'ambes1_t1'}
 
 COMPARISON_SPACES = [('z', 'area_fraction_top'),
