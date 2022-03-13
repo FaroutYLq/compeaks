@@ -189,12 +189,12 @@ class PeakExtra(strax.MergeOnlyPlugin):
     save_when = strax.SaveWhen.ALWAYS
 
 
-def get_context(signal_type, version='xenonnt_v6', output_folder='/project2/lgrandi/yuanlq/xenonnt/'):
+def get_context(signal_type, version='xenonnt_v7', output_folder='/project2/lgrandi/yuanlq/xenonnt/'):
     """wrapper around context to get peaks of a certain source. Now supporting KrS1A, KrS1B, Ar37.
 
     Args:
         signal_type (str): signal type that can be one of KrS1A, KrS1B, ArS1
-        version (str, optional): cutax version to load events. Defaults to 'xenonnt_v6'.
+        version (str, optional): cutax version to load events. Defaults to 'xenonnt_v7'.
         output_folder (str, optional): strax data output folder. Defaults to '/project2/lgrandi/yuanlq/xenonnt/'.
     """
     assert signal_type in SUPPORTED_SIGNALS, "Please try signal type in the supported list: %s"%(SUPPORTED_SIGNALS)
@@ -220,13 +220,13 @@ def get_context(signal_type, version='xenonnt_v6', output_folder='/project2/lgra
     return cutax_context
 
 
-def get_peaks(runs, signal_type, version='xenonnt_v6', output_folder='/project2/lgrandi/yuanlq/xenonnt/', **kargs):
+def get_peaks(runs, signal_type, version='xenonnt_v7', output_folder='/project2/lgrandi/yuanlq/xenonnt/', **kargs):
     """wrapper around get_array to get peaks of a certain source. Now supporting KrS1A, KrS1B, Ar37.
 
     Args:
         runs (str or 1darray): runs to extract certain signal. Assumed all type of runs if provided array.
         signal_type (str): signal type that can be one of KrS1A, KrS1B, ArS1
-        version (str, optional): cutax version to load events. Defaults to 'xenonnt_v6'.
+        version (str, optional): cutax version to load events. Defaults to 'xenonnt_v7'.
         output_folder (str, optional): strax data output folder. Defaults to '/project2/lgrandi/yuanlq/xenonnt/'.
     """
     cutax_context = get_context(signal_type=signal_type, version=version, output_folder=output_folder)
@@ -234,13 +234,13 @@ def get_peaks(runs, signal_type, version='xenonnt_v6', output_folder='/project2/
     return result
 
 
-def get_peak_basics(runs, signal_type, version='xenonnt_v6', output_folder='/project2/lgrandi/yuanlq/xenonnt/', **kargs):
+def get_peak_basics(runs, signal_type, version='xenonnt_v7', output_folder='/project2/lgrandi/yuanlq/xenonnt/', **kargs):
     """wrapper around get_array to get peak_basics of a certain source. Now supporting KrS1A, KrS1B, Ar37.
 
     Args:
         runs (str or 1darray): runs to extract certain signal. Assumed all type of runs if provided array.
         signal_type (str): signal type that can be one of KrS1A, KrS1B, ArS1
-        version (str, optional): cutax version to load events. Defaults to 'xenonnt_v6'.
+        version (str, optional): cutax version to load events. Defaults to 'xenonnt_v7'.
         output_folder (str, optional): strax data output folder. Defaults to '/project2/lgrandi/yuanlq/xenonnt/'.
     """
     cutax_context = get_context(signal_type=signal_type, version=version, output_folder=output_folder)
@@ -248,14 +248,14 @@ def get_peak_basics(runs, signal_type, version='xenonnt_v6', output_folder='/pro
     return result
 
 
-def get_data_peak_extra(signal_type, runs=False, version='xenonnt_v6', 
+def get_data_peak_extra(signal_type, runs=False, version='xenonnt_v7', 
                         output_folder='/project2/lgrandi/yuanlq/xenonnt/', **kargs):
     """wrapper around get_array to get peak_extra of a certain source. Now supporting KrS1A, KrS1B, Ar37.
 
     Args:
         signal_type (str): signal type that can be one of KrS1A, KrS1B, ArS1.
         runs (str or 1darray, optional): runs to extract certain signal. Assumed all type of runs if provided array. If not specified, will use runs in SOURCE_RUNS
-        version (str, optional): cutax version to load events. Defaults to 'xenonnt_v6'.
+        version (str, optional): cutax version to load events. Defaults to 'xenonnt_v7'.
         output_folder (str, optional): strax data output folder. Defaults to '/project2/lgrandi/yuanlq/xenonnt/'.
     """
     cutax_context = get_context(signal_type=signal_type, version=version, output_folder=output_folder)
