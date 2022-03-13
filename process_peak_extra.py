@@ -13,7 +13,7 @@ _, runid, signal = sys.argv
 print("Loaded the context successfully, and the run id to process:", runid)
 
 get_peak_extra(runs=runid, signal_type=signal, 
-               version='xenonnt_v6',
+               version='xenonnt_v7',
                output_folder='/project2/lgrandi/yuanlq/xenonnt/')
 
 print('Done')
