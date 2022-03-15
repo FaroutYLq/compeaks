@@ -155,7 +155,6 @@ def compare_avgwfs(signal_type0, signal_type1, avg_wf_mean0, avg_wf_mean1, metho
         method (str, optional): alignment technique. For example: {'first_phr', 'area_range', 'self_adjusted'}. Defaults to 'first_phr'.
         wfsim_template (ndarray, optional): Analytic S1 template in wfsim. axis0 = depth, axis1 = wf samples.
     """
-    print('Comparing in 2D parameter spaces.')
     is_sim0 = False
     is_sim1 = False
     if (signal_type0[:3] == 'sim'):
