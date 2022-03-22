@@ -23,8 +23,9 @@ FAX_CONFIG_DEFAULT={
         's1_time_spline': 'XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz',
         'photon_area_distribution':'/dali/lgrandi/giovo/XENONnT/Utility/SPEshape/SR0/SPEshape_digitized_for_WFsim_SR0_no_noise.csv',
         'enable_noise': True,
-        'enable_electron_afterpulses': False,
-        'enable_pmt_afterpulses': False,
+        'enable_electron_afterpulses': True,
+        'enable_pmt_afterpulses': False,  
+        'photon_ap_cdfs': 'XENONnT_pmt_afterpulse_config_018435.json.gz',
     }
 
 
