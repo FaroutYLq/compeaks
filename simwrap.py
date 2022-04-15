@@ -21,7 +21,7 @@ FAX_CONFIG_DEFAULT={
         's1_model_type': 'nest+optical_propagation',
         's1_pattern_map': 'XENONnT_s1_xyz_patterns_LCE_corrected_qes_MCva43fa9b_wires.pkl',
         's1_time_spline': 'XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz',
-        'photon_area_distribution':'/dali/lgrandi/giovo/XENONnT/Utility/SPEshape/SR0/SPEshape_digitized_for_WFsim_SR0_no_noise.csv',
+        'photon_area_distribution':'/dali/lgrandi/giovo/XENONnT/Utility/SPEshape/SR0/SPEshape_digitized_for_WFsim_20210713_no_noise.csv',
         'enable_noise': True,
         'enable_electron_afterpulses': True,
         'enable_pmt_afterpulses': False,  
@@ -217,9 +217,9 @@ def get_sim_peak_extra(runid, interaction_type, energy, N=100000, straxen_config
         (ndarray): peak extra for simulation (not exactly same dtype as is in regular peak_extra)
     """
     st = get_sim_context(interaction_type=interaction_type, energy=energy, N=N, **kargs)
+    truth = st.get_array(runid, 'truth', config=straxen_config)
     peaks = st.get_array(runid, 'peaks', config=straxen_config)
     peak_basics = st.get_array(runid, 'peak_basics', config=straxen_config)
-    truth = st.get_array(runid, 'truth', config=straxen_config)
     match = st.get_array(runid, 'match_acceptance_extended', config=straxen_config)
     peak_extra = sim_peak_extra(peaks, peak_basics, truth, match)
 
