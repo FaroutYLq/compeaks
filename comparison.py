@@ -198,7 +198,8 @@ def compare_avgwfs(signal_type0, signal_type1, avg_wf_mean0, avg_wf_mean1, metho
 
 
 def compare_2para(peak_extra0, peak_extra1, signal_type0, signal_type1, 
-                  comparison_spaces = COMPARISON_SPACES):
+                  comparison_spaces = COMPARISON_SPACES,
+                  errorbar = 'std'):
     """Compare peak_extra in 2D parameter spaces you specified.
 
     Args:
@@ -207,7 +208,14 @@ def compare_2para(peak_extra0, peak_extra1, signal_type0, signal_type1,
         signal_type0 (str): Please put data here if you want to involve data in comparison! examples: ['KrS1A', 'KrS1B', 'ArS1', 'sim_KrS1A', 'sim_KrS1B', 'sim_ArS1', 'sim_AmBe']
         signal_type1 (str): Please put wfsim here if you want to involve wfsim comparison! examples: ['KrS1A', 'KrS1B', 'ArS1', 'sim_KrS1A', 'sim_KrS1B', 'sim_ArS1', 'sim_AmBe']
         comparison_spaces (array-like, optional): axis0=parameter spaces, axis1=parameter names. Defaults to COMPARISON_SPACES.
+        errorbar (str): what error bar to show? "std" for standard deviation in each slice, "mean_error" for error estimated for mean. Default to be "std". 
     """
+    assert errorbar in ['std', 'mean_error']
+    if errorbar == 'std':
+        sigma_mu = False
+    elif errorbar == 'mean_error':
+        sigma_mu = True
+
     fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(15,15), dpi=300)
     for i,space in enumerate(comparison_spaces):
         j = i//3
@@ -218,6 +226,7 @@ def compare_2para(peak_extra0, peak_extra1, signal_type0, signal_type1,
                       n_x=20, 
                       xlabel=space[0], ylabel=space[1], 
                       label1=signal_type0, label2=signal_type1,
+                      sigma_mu=sigma_mu,
                       ax = axs[j, i-j*3])
         else:
             compare2d(x1s=peak_extra0[space[0]], y1s=peak_extra0[space[1]], 
@@ -225,6 +234,7 @@ def compare_2para(peak_extra0, peak_extra1, signal_type0, signal_type1,
                       n_x=20, 
                       xlabel=space[0], ylabel=space[1], 
                       label1=signal_type0, label2=signal_type1,
+                      sigma_mu=sigma_mu,
                       ax = axs[j, i-j*3])
 
     fig.suptitle('%s VS %s'%(signal_type0, signal_type1), fontsize=25, y=0.93)
