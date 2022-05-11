@@ -32,7 +32,7 @@ ENERGY_DEPOSIT = {'sim_KrS1A': 32.1, 'sim_KrS1B': 9.4, 'sim_ArS1': 2.8, 'sim_AmB
 INTERACTION_TYPES = {'sim_KrS1A': 7, 'sim_KrS1B': 7, 'sim_ArS1': 7, 'sim_AmBe': 4}
 DEFAULT_SIM_RUNS = {'sim_KrS1A': 'kr83ms1a_t1', 'sim_KrS1B': 'kr83ms1b_t1', 'sim_ArS1': 'ar37s1_t1', 'sim_AmBe':'ambes1_t1'}
 
-COMPARISON_SPACES = [('z', 'area_fraction_top'),
+COMPARISON_SPACES2D = [('z', 'area_fraction_top'),
                      ('z', 'rise_time'), 
                      ('z', 'range_50p_area'),
                      ('z', 'range_90p_area'),
@@ -41,6 +41,8 @@ COMPARISON_SPACES = [('z', 'area_fraction_top'),
                      ('area_fraction_top','rise_time'),
                      ('area', 'range_50p_area'),
                      ('area', 'rise_time')]
+COMPARISON_SPACES1D = ['z', 'area', 'area_fraction_top', 'range_50p_area', 'range_90p_area',
+                       'rise_time', 'n_channels', 'tight_coincidence_channel', 'n_hits']
 
 ZSLIACES = np.array([-128, -116, -104,  -92, -79,  -67,  -55,  -43, -31,  -19])
 
@@ -198,7 +200,7 @@ def compare_avgwfs(signal_type0, signal_type1, avg_wf_mean0, avg_wf_mean1, metho
 
 
 def compare_2para(peak_extra0, peak_extra1, signal_type0, signal_type1, 
-                  comparison_spaces = COMPARISON_SPACES,
+                  comparison_spaces = COMPARISON_SPACES2D,
                   errorbar = 'std'):
     """Compare peak_extra in 2D parameter spaces you specified.
 
@@ -207,7 +209,7 @@ def compare_2para(peak_extra0, peak_extra1, signal_type0, signal_type1,
         peak_extra1 (ndarray): peak extra for simulation or data of a specific calibration source.
         signal_type0 (str): Please put data here if you want to involve data in comparison! examples: ['KrS1A', 'KrS1B', 'ArS1', 'sim_KrS1A', 'sim_KrS1B', 'sim_ArS1', 'sim_AmBe']
         signal_type1 (str): Please put wfsim here if you want to involve wfsim comparison! examples: ['KrS1A', 'KrS1B', 'ArS1', 'sim_KrS1A', 'sim_KrS1B', 'sim_ArS1', 'sim_AmBe']
-        comparison_spaces (array-like, optional): axis0=parameter spaces, axis1=parameter names. Defaults to COMPARISON_SPACES.
+        comparison_spaces (array-like, optional): axis0=parameter spaces, axis1=parameter names. Defaults to COMPARISON_SPACES2D.
         errorbar (str): what error bar to show? "std" for standard deviation in each slice, "mean_error" for error estimated for mean. Default to be "std". 
     """
     assert errorbar in ['std', 'mean_error']
@@ -239,6 +241,82 @@ def compare_2para(peak_extra0, peak_extra1, signal_type0, signal_type1,
 
     fig.suptitle('%s VS %s'%(signal_type0, signal_type1), fontsize=25, y=0.93)
     fig.show()
+
+
+def compare_1para(peak_extra0, peak_extra1, signal_type0, signal_type1, 
+                  comparison_spaces = COMPARISON_SPACES1D, 
+                  n_x = 50):
+    """Compare peak_extra in 2D parameter spaces you specified.
+
+    Args:
+        peak_extra0 (ndarray): peak extra for simulation or data of a specific calibration source.
+        peak_extra1 (ndarray): peak extra for simulation or data of a specific calibration source.
+        signal_type0 (str): Please put data here if you want to involve data in comparison! examples: ['KrS1A', 'KrS1B', 'ArS1', 'sim_KrS1A', 'sim_KrS1B', 'sim_ArS1', 'sim_AmBe']
+        signal_type1 (str): Please put wfsim here if you want to involve wfsim comparison! examples: ['KrS1A', 'KrS1B', 'ArS1', 'sim_KrS1A', 'sim_KrS1B', 'sim_ArS1', 'sim_AmBe']
+        comparison_spaces (array-like, optional): axis0=parameter spaces. Defaults to COMPARISON_SPACES2D.
+        n_x (int): number of bins for the histograms.
+    """
+    fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(15,15), dpi=300)
+    for i,space in enumerate(comparison_spaces):
+        j = i//3
+
+        compare1d(x1s=peak_extra0[space], 
+                  x2s=peak_extra1[space], 
+                  n_x=n_x, 
+                  xlabel=space, 
+                  label1=signal_type0, label2=signal_type1,
+                  ax = axs[j, i-j*3])
+
+    fig.suptitle('%s VS %s'%(signal_type0, signal_type1), fontsize=25, y=0.93)
+    fig.show()
+
+
+def compare1d(x1s, x2s, x_range=False, n_x=50, logx=False, 
+              title='', xlabel='', ylabel='normalized counts', 
+              label1='', label2='', x3s=False, ax=None):
+    """1D parameter space comparison.
+    """
+    if not x_range:
+        x_range = (min(np.min(x1s), np.min(x2s)), max(np.max(x1s), np.max(x2s)))
+    
+    x_bins = np.linspace(x_range[0], x_range[1], n_x+1)
+    x_bins_center = (x_bins[1:] + x_bins[:-1])/2
+    x_bin_size = x_bins[1] - x_bins[0]
+    x1_std = np.zeros(n_x)
+    x2_std = np.zeros(n_x)
+    x1_cnt = np.zeros(n_x)
+    x2_cnt = np.zeros(n_x)
+    x1_total_cnt = len(x1s)
+    x2_total_cnt = len(x2s)
+
+    for i in range(len(x_bins)-1):
+        mask1 = (x1s>=x_bins[i]) & (x1s<=x_bins[i+1])
+        mask2 = (x2s>=x_bins[i]) & (x2s<=x_bins[i+1])
+        x1_cnt[i] = len(x1s[mask1])
+        x2_cnt[i] = len(x2s[mask2])
+        x1_std[i] = np.sqrt(len(x1s[mask1]))
+        x2_std[i] = np.sqrt(len(x2s[mask2]))
+    
+    ax.errorbar(x_bins_center, x1_cnt/x1_total_cnt, x1_std/x1_total_cnt, label=label1)
+    # artificial horizontal shift to distinguish errorbars
+    ax.errorbar(x_bins_center+0.15*x_bin_size, x2_cnt/x2_total_cnt, x2_std/x2_total_cnt, label=label2)
+
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    if not (label1=='' and label2==''):
+        ax.legend()
+    if logx:
+        ax.set_xscale('log')
+    if logy:
+        ax.set_yscale('log')
+       
+    if x3s == False and y3s == False:
+        pass
+    elif x3s.any() and y3s.any():
+        ax.plot(x3s, y3s, color='r')
+        
+    ax.grid()
 
 
 def compare2d(x1s, y1s, x2s, y2s, x_range=False, y_range=False, n_x=20, logx=False, logy=False, sigma_mu=False,
@@ -279,9 +357,11 @@ def compare2d(x1s, y1s, x2s, y2s, x_range=False, y_range=False, n_x=20, logx=Fal
 
     if sigma_mu:
         ax.errorbar(x_bins_center, y1_avg, y1_std/np.sqrt(y1_cnt), label=label1)
+        # artificial horizontal shift to distinguish errorbars
         ax.errorbar(x_bins_center+0.15*x_bin_size, y2_avg, y2_std/np.sqrt(y2_cnt), label=label2)
     else:
         ax.errorbar(x_bins_center, y1_avg, y1_std, label=label1)
+        # artificial horizontal shift to distinguish errorbars
         ax.errorbar(x_bins_center+0.15*x_bin_size, y2_avg, y2_std, label=label2)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
