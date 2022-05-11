@@ -42,7 +42,7 @@ COMPARISON_SPACES2D = [('z', 'area_fraction_top'),
                      ('area', 'range_50p_area'),
                      ('area', 'rise_time')]
 COMPARISON_SPACES1D = ['z', 'area', 'area_fraction_top', 'range_50p_area', 'range_90p_area',
-                       'rise_time', 'n_channels', 'tight_coincidence_channel', 'n_hits']
+                       'rise_time', 'n_channels', 'center', 'n_hits']
 
 ZSLIACES = np.array([-128, -116, -104,  -92, -79,  -67,  -55,  -43, -31,  -19])
 
@@ -260,8 +260,15 @@ def compare_1para(peak_extra0, peak_extra1, signal_type0, signal_type1,
     for i,space in enumerate(comparison_spaces):
         j = i//3
 
-        compare1d(x1s=peak_extra0[space], 
-                  x2s=peak_extra1[space], 
+        if space == 'center':
+            x1s = peak_extra0['center_time'] - peak_extra0['time']
+            x2s = peak_extra1['center_time'] - peak_extra1['time']
+        else:
+            x1s = peak_extra0[space]
+            x2s = peak_extra1[space]
+
+        compare1d(x1s=x1s, 
+                  x2s=x2s, 
                   n_x=n_x, 
                   xlabel=space, 
                   label1=signal_type0, label2=signal_type1,
@@ -308,10 +315,8 @@ def compare1d(x1s, x2s, x_range=False, n_x=50, logx=False,
         ax.legend()
     if logx:
         ax.set_xscale('log')
-    if logy:
-        ax.set_yscale('log')
        
-    if x3s == False and y3s == False:
+    if x3s == False:
         pass
     elif x3s.any() and y3s.any():
         ax.plot(x3s, y3s, color='r')
