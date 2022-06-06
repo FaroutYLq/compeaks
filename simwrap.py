@@ -19,7 +19,7 @@ NWIDTHS = 11
 INT_NAN = -99999
 FAX_CONFIG_DEFAULT={
         's1_model_type': 'nest+optical_propagation',
-        's1_pattern_map': 'XENONnT_s1_xyz_patterns_LCE_corrected_qes_MCva43fa9b_wires.pkl',
+        's1_pattern_map': 'XENONnT_s1_xyz_patterns_LCE_MCvf051911_wires.pkl',
         's1_time_spline': 'XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz',
         'photon_area_distribution':'/dali/lgrandi/giovo/XENONnT/Utility/SPEshape/SR0/SPEshape_digitized_for_WFsim_20210713_no_noise.csv',
         'enable_noise': True,
