@@ -355,10 +355,13 @@ def compare2d(x1s, y1s, x2s, y2s, x_range=False, y_range=False, n_x=20, logx=Fal
         
 
     if ylabel=='area_normalized':
-        y1_std = y1_std/y1_avg[0]
-        y2_std = y2_std/y2_avg[0]
-        y1_avg = y1_avg/y1_avg[0]
-        y2_avg = y2_avg/y2_avg[0]
+        y1_normalizer = y1_avg[(y1_avg!=0)&(~np.isnan(y1_avg))][0]
+        y2_normalizer = y2_avg[(y2_avg!=0)&(~np.isnan(y2_avg))][0]
+
+        y1_std = y1_std/y1_normalizer
+        y2_std = y2_std/y2_normalizer
+        y1_avg = y1_avg/y1_normalizer
+        y2_avg = y2_avg/y2_normalizer
 
     if sigma_mu:
         ax.errorbar(x_bins_center, y1_avg, y1_std/np.sqrt(y1_cnt), label=label1)
