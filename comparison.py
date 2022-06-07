@@ -388,7 +388,8 @@ def compare2d(x1s, y1s, x2s, y2s, x_range=False, y_range=False, n_x=20, logx=Fal
 
 def sr0_auto_plots(signal_type = ['ArS1', 'KrS1B', 'KrS1A'], method = 'area_range',
                    s1_pattern_map = 'XENONnT_s1_xyz_patterns_LCE_MCvf051911_wires.pkl', 
-                   s1_time_spline = 'XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz'):
+                   s1_time_spline = 'XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz',
+                   errorbar = 'mean_error'):
     """Automatically generate comparison plots given optical maps.
 
     Args:
@@ -415,5 +416,10 @@ def sr0_auto_plots(signal_type = ['ArS1', 'KrS1B', 'KrS1A'], method = 'area_rang
         compare_avgwfs(signal_type0=sig_type, signal_type1='sim_'+sig_type, 
                        avg_wf_mean0=avg_wf_mean, avg_wf_mean1=sim_avg_wf_mean, 
                        method=method, wfsim_template=template)
-        compare_2para(peak_extra0=peak_extra, peak_extra1=sim_peak_extra, 
+        
+        compare_1para(peak_extra0=peak_extra, peak_extra1=sim_peak_extra,
                       signal_type0=sig_type, signal_type1='sim_'+sig_type)
+
+        compare_2para(peak_extra0=peak_extra, peak_extra1=sim_peak_extra, 
+                      signal_type0=sig_type, signal_type1='sim_'+sig_type,
+                      errorbar='mean_error')
