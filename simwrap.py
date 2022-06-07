@@ -11,23 +11,50 @@ import nestpy
 import pandas as pd
 import pema
 
+downloader = straxen.MongoDownloader()
 nc = nestpy.NESTcalc(nestpy.DetectorExample_XENON10())
 density = 2.94
-driftfield= 18.3
+driftfield= 22.92
 NSUMWVSAMPLES = 200
 NWIDTHS = 11
 INT_NAN = -99999
+FIELD_FILE="fieldmap_2D_B2d75n_C2d75n_G0d3p_A4d9p_T0d9n_PMTs1d3n_FSR0d65p_QPTFE_0d5n_0d4p.json.gz"
 FAX_CONFIG_DEFAULT={
-        's1_model_type': 'nest+optical_propagation',
+        's1_model_type': "optical_propagation + nest",
         's1_pattern_map': 'XENONnT_s1_xyz_patterns_LCE_MCvf051911_wires.pkl',
         's1_time_spline': '/project2/lgrandi/yuanlq/shared/s1_optical/XENONnT_s1_proponly_pc_reflection_optPhot_perPMT_S1_local_20220510.json.gz',
         "s1_lce_correction_map": False,
-        'photon_area_distribution':'/dali/lgrandi/giovo/XENONnT/Utility/SPEshape/SR0/SPEshape_digitized_for_WFsim_20210713_no_noise.csv',
+        'photon_area_distribution':'XENONnT_SR0_spe_distributions_20210713_no_noise_scaled.csv',
         'enable_noise': True,
         'enable_electron_afterpulses': True,
         'enable_pmt_afterpulses': False,  
         'photon_ap_cdfs': 'XENONnT_pmt_afterpulse_config_018435.json.gz',
     }
+FIELD_MAP = straxen.InterpolatingMap(
+                straxen.get_resource(downloader.download_single(FIELD_FILE),
+                fmt="json.gz"),
+                method="RegularGridInterpolator")
+
+
+def generate_vertex(r_range=(0,64), 
+                    z_range=(-142, -6), size=1):
+    """Generate x,y,z position. Copied from https://github.com/XENONnT/analysiscode/blob/master/wfsim/sample_generation/generators.py
+
+    Args:
+        r_range (tuple, optional): radial coordinate. Defaults to (0,64).
+        z_range (tuple, optional): depth range. Defaults to (-142, -6).
+        size (int, optional): _description_. Defaults to 1.
+
+    Returns:
+        x, y, z (float): x, y, z coordinate of the simulated vertex
+    """
+    phi = np.random.uniform(size=size)*2*np.pi
+    r = r_range[1]*np.sqrt(np.random.uniform( (r_range[0]/r_range[1])**2, 1, size=size) )
+    z = np.random.uniform(z_range[0],z_range[1],size=size)
+    x=(r*np.cos(phi))
+    y=(r*np.sin(phi))
+
+    return x[0],y[0],z[0]
 
 
 def instruction(interaction_type, energy, N_events=1):
@@ -44,19 +71,20 @@ def instruction(interaction_type, energy, N_events=1):
         assert len(energy)==2, 'You must input a single energy or array like [low, high] for uniform dist'
 
     instr = np.zeros(N_events , wfsim.instruction_dtype)
-    #instr['x'] = evt['x']
-    #instr['y'] = evt['y']
-    instr['z'] = np.random.uniform(-134,-13) # Fiducial volume z
+    x, y, z = generate_vertex() # Fiducial volume considered
+    instr['x'] = x
+    instr['y'] = y
+    instr['z'] = z
     instr['type'] = 1
     instr['recoil'] = interaction_type
-    instr['local_field'] = driftfield
+    instr['local_field'] = FIELD_MAP([np.sqrt(x**2 + y**2),z])[0]
 
     for i in range(0, N_events):
         if (type(energy) == float) or (type(energy) == int):
             e = energy
         else:
             e = np.random.uniform(low=energy[0], high=energy[1])
-        yields = nc.GetYields(nestpy.INTERACTION_TYPE(interaction_type), e, density, driftfield)
+        yields = nc.GetYields(nestpy.INTERACTION_TYPE(interaction_type), e, density, instr['local_field'])
         cur_q = nc.GetQuanta(yields)
         instr['time'][i] = (i+1) * int(1e6)
         instr['amp'][i] = cur_q.photons
