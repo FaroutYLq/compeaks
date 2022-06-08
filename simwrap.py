@@ -14,7 +14,7 @@ import pema
 downloader = straxen.MongoDownloader()
 nc = nestpy.NESTcalc(nestpy.DetectorExample_XENON10())
 density = 2.94
-driftfield= 22.92
+driftfield= 22.92 # not really used. we are using spatial dependent map
 NSUMWVSAMPLES = 200
 NWIDTHS = 11
 INT_NAN = -99999
