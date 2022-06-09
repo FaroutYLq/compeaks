@@ -111,6 +111,15 @@ def get_sim_context(interaction_type, energy, N=10000, **kargs):
         temp['time'] = temp['time'] + j * N_events * int(1e6)
         fax_instr.append(temp)
     fax_instr = np.concatenate(fax_instr)
+    
+    # Sanity check for amp
+    plt.figure(dpi=150)
+    plt.hist(fax_instr['amp'], bins=50)
+    plt.xlabel('AMP')
+    plt.ylabel('counts')
+    plt.title('Sanity check for instruction')
+    plt.show()
+
     if (type(energy) == float) or (type(energy) == int):
         file_name = '/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_config/int%s_e%s_%s.csv'%(interaction_type, int(energy),int(energy))
     else:
