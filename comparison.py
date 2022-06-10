@@ -28,7 +28,7 @@ KR_AVAILABLE = np.array(['018223', '018834', '030532', '030430', '030403', '0233
        '026419', '018364'])
 
 SUPPORTED_SIGNALS = ['KrS1A', 'KrS1B', 'ArS1', 'sim_KrS1A', 'sim_KrS1B', 'sim_ArS1', 'sim_AmBe']
-ENERGY_DEPOSIT = {'sim_KrS1A': 32.1, 'sim_KrS1B': 9.4, 'sim_ArS1': 2.2, 'sim_AmBe': [2,20]}
+ENERGY_DEPOSIT = {'sim_KrS1A': 32.1, 'sim_KrS1B': 9.4, 'sim_ArS1': 2.5, 'sim_AmBe': [2,20]} # KrS1B set to 9.35 instead of 9.4 to bypass weird nest feature https://github.com/NESTCollaboration/nestpy/blob/cddb082d4c69d87831872c67fc1fd48bebb8d28f/src/nestpy/NEST.cpp#L922
 INTERACTION_TYPES = {'sim_KrS1A': 11, 'sim_KrS1B': 11, 'sim_ArS1': 7, 'sim_AmBe': 4}
 DEFAULT_SIM_RUNS = {'sim_KrS1A': 'kr83ms1a_t1', 'sim_KrS1B': 'kr83ms1b_t1', 'sim_ArS1': 'ar37s1_t1', 'sim_AmBe':'ambes1_t1'}
 
@@ -37,12 +37,12 @@ COMPARISON_SPACES2D = [('z', 'area_fraction_top'),
                      ('z', 'range_50p_area'),
                      ('z', 'range_90p_area'),
                      ('z', 'area'),
-                     ('z', 'area_normalized'),
+                     ('z', 'tight_coincidence'),
                      ('area_fraction_top','rise_time'),
                      ('area', 'range_50p_area'),
                      ('area', 'rise_time')]
 COMPARISON_SPACES1D = ['z', 'area', 'area_fraction_top', 'range_50p_area', 'range_90p_area',
-                       'rise_time', 'n_channels', 'center', 'n_hits']
+                       'rise_time', 'n_channels', 'tight_coincidence', 'n_hits']
 
 ZSLIACES = np.array([-128, -116, -104,  -92, -79,  -67,  -55,  -43, -31,  -19])
 
