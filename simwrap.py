@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import nestpy
 import pandas as pd
 import pema
+import datetime
 
 downloader = straxen.MongoDownloader()
 nc = nestpy.NESTcalc(nestpy.DetectorExample_XENON10())
@@ -29,6 +30,7 @@ FAX_CONFIG_DEFAULT={
         'enable_electron_afterpulses': True,
         'enable_pmt_afterpulses': False,  
         'photon_ap_cdfs': 'XENONnT_pmt_afterpulse_config_018435.json.gz',
+        'override_s1_photon_time_field': -1
     }
 FIELD_MAP = straxen.InterpolatingMap(
                 straxen.get_resource(downloader.download_single(FIELD_FILE),
@@ -121,21 +123,22 @@ def get_sim_context(interaction_type, energy, N=10000, **kargs):
     plt.title('Sanity check for instruction')
     plt.show()
     """
-    
+    now_str = datetime.datetime.now().strftime('%Y%m%d%H%M')
     if (type(energy) == float) or (type(energy) == int):
-        file_name = '/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_config/int%s_e%s_%s.csv'%(interaction_type, int(energy),int(energy))
+        file_name = '/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_config/int%s_e%s_%s_%s.csv'%(interaction_type, int(energy),int(energy),now_str)
     else:
-        file_name = '/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_config/int%s_e%s_%s.csv'%(interaction_type, int(energy[0]),int(energy[1]))
+        file_name = '/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_config/int%s_e%s_%s_%s.csv'%(interaction_type, int(energy[0]),int(energy[1]), now_str)
     pd.DataFrame(fax_instr).to_csv(file_name, index=False)
+    print('Instruction file at: %s'%(file_name))
 
     stwf = straxen.contexts.xenonnt_simulation(
         cmt_run_id_sim = '034000',
         output_folder='/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_data',
-        fax_config='fax_config_nt_sr0_v0.json',)
+        fax_config='fax_config_nt_sr0_v1.json',)
 
     config_dict = FAX_CONFIG_DEFAULT
     config_dict.update(kargs)
-    print('FAX config:')
+    print('FAX config override:')
     print(config_dict)
     stwf.set_config(dict(fax_config_override=config_dict))
 

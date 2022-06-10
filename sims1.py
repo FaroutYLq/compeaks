@@ -87,17 +87,17 @@ def get_sim_aft(z, pattern_map_file, fv_radius=60.73):
     return avg_aft, std_aft
 
 
-def get_config(config_file='fax_config_nt_sr0_v0.json'):
+def get_config(config_file='fax_config_nt_sr0_v1.json'):
     """Get wfsim configuration file.
 
     Args:
-        config_file (str, optional): Configuration file name. Defaults to 'fax_config_nt_sr0_v0.json'.
+        config_file (str, optional): Configuration file name. Defaults to 'fax_config_nt_sr0_v1.json'.
     """
     config = straxen.get_resource(config_file, config_file.split('.')[-1])
     return config
 
 
-def scintillation(interaction_type, e_dep, config_file='fax_config_nt_sr0_v0.json'):
+def scintillation(interaction_type, e_dep, config_file='fax_config_nt_sr0_v1.json'):
     """Scintillation time delay from NEST. NEST interaction type:
     nr=0, wimp=1, b8=2, dd=3, ambe=4, cf=5, ion=6, gammaray=7,
     beta=8, ch3t=9, c14=10, kr83m=11, nonetype=12
@@ -105,7 +105,7 @@ def scintillation(interaction_type, e_dep, config_file='fax_config_nt_sr0_v0.jso
     Args:
         interaction_type (int): Following the NEST type of intereaction.
         e_dep (float): energy deposit in unit of keV
-        config_file (str, optional): File as wfsim config. Defaults to 'fax_config_nt_sr0_v0.json'.
+        config_file (str, optional): File as wfsim config. Defaults to 'fax_config_nt_sr0_v1.json'.
 
     Returns:
         scint_t, scint_y [1darray]: scintillation delay as a function af time
@@ -214,11 +214,11 @@ def gaussian(x, mu, sig):
     return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
 
 
-def transit(config_file='fax_config_nt_sr0_v0.json'):
+def transit(config_file='fax_config_nt_sr0_v1.json'):
     """transit time spread in PMT as a function of time.
 
     Args:
-        config_file (str, optional): Configuration file name. Defaults to 'fax_config_nt_sr0_v0.json'.
+        config_file (str, optional): Configuration file name. Defaults to 'fax_config_nt_sr0_v1.json'.
     """
     config = get_config(config_file=config_file)
     tts_t = np.arange(100)
@@ -227,11 +227,11 @@ def transit(config_file='fax_config_nt_sr0_v0.json'):
     return tts_t, tts_y
 
 
-def spe(config_file='fax_config_nt_sr0_v0.json'):
+def spe(config_file='fax_config_nt_sr0_v1.json'):
     """SPE pulse shape.
 
     Args:
-        config_file (str, optional): Configuration file name. Defaults to 'fax_config_nt_sr0_v0.json'.
+        config_file (str, optional): Configuration file name. Defaults to 'fax_config_nt_sr0_v1.json'.
     """
     config = get_config(config_file=config_file)
     pe_pulse_ys = np.array(config['pe_pulse_ys'])
@@ -244,7 +244,7 @@ def spe(config_file='fax_config_nt_sr0_v0.json'):
 def sims1(z_position, interaction_type, e_dep,
           spline_file='XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz', 
           pattern_map_file = 'XENONnT_s1_xyz_patterns_LCE_corrected_qes_MCva43fa9b_wires.pkl',
-          config_file='fax_config_nt_sr0_v0.json'):
+          config_file='fax_config_nt_sr0_v1.json'):
     """Do as what wfsim does, give the S1 pulse shape of certain type interaction at certain depth.
 
     Args:
@@ -253,7 +253,7 @@ def sims1(z_position, interaction_type, e_dep,
         e_dep (float): energy deposit in unit of keV
         spline_file (str): pointer to s1 optical propagation splines from resources.
         pattern_map_file (str): path to map. eg. '/dali/lgrandi/xenonnt/simulations/optphot/mc_v4.1.0/S1_1.63_0.99_0.99_0.99_0.99_5500_10000_30/XENONnT_S1_xyz_patterns_LCE_corrected_QEs_MCv4.1.0_wires.pkl' 
-        config_file (str, optional): Configuration file name. Defaults to 'fax_config_nt_sr0_v0.json'.
+        config_file (str, optional): Configuration file name. Defaults to 'fax_config_nt_sr0_v1.json'.
     """
     prop_t, prop_y = propagation(z_position=z_position, spline_file=spline_file, pattern_map_file=pattern_map_file)
     scint_t, scint_y = scintillation(interaction_type=interaction_type, e_dep=e_dep, 
@@ -271,7 +271,7 @@ def sims1(z_position, interaction_type, e_dep,
 def get_s1_templates(interaction_type, e_dep, z_positions=ZSLIACES,
                      spline_file='XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz', 
                      pattern_map_file = 'XENONnT_s1_xyz_patterns_LCE_corrected_qes_MCva43fa9b_wires.pkl',
-                     config_file='fax_config_nt_sr0_v0.json',
+                     config_file='fax_config_nt_sr0_v1.json',
                      plot=True):
     """Get s1 templates based on wfsim from different depth slices.
 
@@ -281,7 +281,7 @@ def get_s1_templates(interaction_type, e_dep, z_positions=ZSLIACES,
         z_positions ([type], optional): [description]. Defaults to ZSLIACES.
         spline_file (str, optional): [description]. Defaults to 'XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz'.
         pattern_map_file (str): path to map. eg. '/dali/lgrandi/xenonnt/simulations/optphot/mc_v4.1.0/S1_1.63_0.99_0.99_0.99_0.99_5500_10000_30/XENONnT_S1_xyz_patterns_LCE_corrected_QEs_MCv4.1.0_wires.pkl' 
-        config_file (str, optional): [description]. Defaults to 'fax_config_nt_sr0_v0.json'.
+        config_file (str, optional): [description]. Defaults to 'fax_config_nt_sr0_v1.json'.
         plot (bool, optional): [description]. Defaults to True.
     """
 

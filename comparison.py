@@ -399,7 +399,7 @@ def compare2d(x1s, y1s, x2s, y2s, x_range=False, y_range=False, n_x=20, logx=Fal
 def sr0_auto_plots(signal_type = ['ArS1', 'KrS1B', 'KrS1A'], method = 'area_range',
                    s1_pattern_map = 'XENONnT_s1_xyz_patterns_LCE_MCvf051911_wires.pkl', 
                    s1_time_spline = '/project2/lgrandi/yuanlq/shared/s1_optical/XENONnT_s1_proponly_pc_reflection_optPhot_perPMT_S1_local_20220510.json.gz',
-                   errorbar = 'mean_error'):
+                   errorbar = 'mean_error', **kargs):
     """Automatically generate comparison plots given optical maps.
 
     Args:
@@ -407,6 +407,7 @@ def sr0_auto_plots(signal_type = ['ArS1', 'KrS1B', 'KrS1A'], method = 'area_rang
         method (str, optional): method (str, optional): alignment technique. For example: {'first_phr', 'area_range', 'self_adjusted'}. Defaults to 'first_phr'.
         s1_pattern_map (str, optional): path to s1 pattern map from resources. Defaults to 'XENONnT_s1_xyz_patterns_LCE_MCvf051911_wires.pkl'.
         s1_time_spline (str, optional): path to s1 optical propagation splines from resources. Defaults to 'XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz'.
+        **kargs: keyword arguements for fax_config_overide applied to simulation.
     """
     
     for sig_type in signal_type:
@@ -415,7 +416,8 @@ def sr0_auto_plots(signal_type = ['ArS1', 'KrS1B', 'KrS1A'], method = 'area_rang
 
         sim_peak_extra = get_peak_extra('sim_'+sig_type,
                                         s1_pattern_map = s1_pattern_map,
-                                        s1_time_spline = s1_time_spline)
+                                        s1_time_spline = s1_time_spline,
+                                        **kargs)
         peak_extra = get_peak_extra(signal_type=sig_type)
 
         avg_wf_mean = get_avgwfs(peak_extra=peak_extra, signal_type=sig_type, method=method)
