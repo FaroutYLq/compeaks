@@ -21,15 +21,10 @@ NWIDTHS = 11
 INT_NAN = -99999
 FIELD_FILE="fieldmap_2D_B2d75n_C2d75n_G0d3p_A4d9p_T0d9n_PMTs1d3n_FSR0d65p_QPTFE_0d5n_0d4p.json.gz"
 FAX_CONFIG_DEFAULT={
-        's1_model_type': "optical_propagation + nest",
-        's1_pattern_map': 'XENONnT_s1_xyz_patterns_LCE_MCvf051911_wires.pkl',
         's1_time_spline': '/project2/lgrandi/yuanlq/shared/s1_optical/XENONnT_s1_proponly_pc_reflection_optPhot_perPMT_S1_local_20220510.json.gz',
-        "s1_lce_correction_map": False,
-        'photon_area_distribution':'XENONnT_SR0_spe_distributions_20210713_no_noise_scaled.csv',
         'enable_noise': True,
         'enable_electron_afterpulses': True,
         'enable_pmt_afterpulses': False,  
-        'photon_ap_cdfs': 'XENONnT_pmt_afterpulse_config_018435.json.gz',
         'override_s1_photon_time_field': -1
     }
 FIELD_MAP = straxen.InterpolatingMap(
