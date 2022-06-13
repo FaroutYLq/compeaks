@@ -12,6 +12,7 @@ import pandas as pd
 import pema
 import datetime
 import generator
+import cutax
 
 downloader = straxen.MongoDownloader()
 nc = nestpy.NESTcalc(nestpy.DetectorExample_XENON10())
@@ -115,7 +116,7 @@ def instruction(interaction_type, energy, N=10000):
 		fax_instr = generator.generator_Kr83m(
 						n_tot=N, 
 						recoil=11,
-						rate = 30.0, # in Hz, hardcoded for Kr
+						rate = 30., # in Hz, hardcoded in case 
 						fmap=FIELD_MAP,
 						nc=nc, #nest calculator object
 						r_range = (0, 64),
@@ -146,40 +147,37 @@ def instr_file_name(fax_instr, interaction_type, energy):
 
 
 def get_sim_context(interaction_type, energy, N=10000, **kargs):
-    """Generate simulation context. Assumed single peak simulation, which might be unphysical for Kryptons.
-    nr=0, wimp=1, b8=2, dd=3, ambe=4, cf=5, ion=6, gammaray=7,
-    beta=8, ch3t=9, c14=10, kr83m=11, nonetype=12
+	"""Generate simulation context. Assumed single peak simulation, which might be unphysical for Kryptons.
+	nr=0, wimp=1, b8=2, dd=3, ambe=4, cf=5, ion=6, gammaray=7,
+	beta=8, ch3t=9, c14=10, kr83m=11, nonetype=12
 
-    Args:
-        interaction_type (int): Following the NEST type of intereaction.
-        energy (float or list): energy deposit in unit of keV
-        N (int, optional): simulation number. Defaults to 1.
-    """
-    # generate and save instruction
-    file_name = instruction(interaction_type, energy, N)
-    
+	Args:
+		interaction_type (int): Following the NEST type of intereaction.
+		energy (float or list): energy deposit in unit of keV
+		N (int, optional): simulation number. Defaults to 1.
+	"""
+	# generate and save instruction
+	file_name = instruction(interaction_type, energy, N)
 
-    stwf = straxen.contexts.xenonnt_simulation(
-        cmt_run_id_sim = '034000',
-        output_folder='/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_data',
-        fax_config='fax_config_nt_sr0_v1.json',)
+	stwf = cutax.contexts.xenonnt_sim_SR0v1_cmt_v8(
+		output_folder='/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_data')
+	stwf.register_all(cutax.cut_lists.kr83m)
+	stwf.register_all(cutax.cut_lists.basic)
 
-    config_dict = FAX_CONFIG_DEFAULT
-    config_dict.update(**kargs)
-    print('FAX config override:')
-    print(config_dict)
-    stwf.set_config(dict(fax_config_override=config_dict))
+	config_dict = FAX_CONFIG_DEFAULT
+	config_dict.update(**kargs)
+	print('FAX config override:')
+	print(config_dict)
+	stwf.set_config(dict(fax_config_override=config_dict))
 
-    stwf.set_config(
-        dict(fax_file=file_name,
-             right_raw_extension=20000,
-             event_rate=1000,
-             chunk_size=1,
-             nchunk=10,))
+	stwf.set_config(
+		dict(fax_file=file_name,
+				right_raw_extension=20000,
+				event_rate=1000,))
 
-    stwf.register_all(pema.match_plugins)
+	stwf.register_all(pema.match_plugins)
 
-    return stwf
+	return stwf
 
 
 def sim_peak_extra(peaks, peak_basics, truth, match):

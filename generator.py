@@ -109,7 +109,7 @@ def generator_flat(en_range=(0,30.0),
 
 
 def generator_Kr83m(
-                    n_tot=1000, recoil=11, rate=30., 
+                    n_tot=1000, recoil=11, rate=30.,
                     fmap=None, nc=None, 
                     r_range=(0,64), z_range=(-142, -6),
                     mode="all", 
@@ -179,6 +179,6 @@ def generator_Kr83m(
             instr['amp'][2*i]=q_.photons
             instr['amp'][2*i+1]=q_.electrons
             instr['n_excitons'][2*i:(2*i+2)]=q_.excitons
-    #instr=instr[np.argsort(instr['time'])]
+    instr=instr[np.argsort(instr['time'])]
     if filterzero: instr=instr[instr['amp']>0]
     return(instr)
