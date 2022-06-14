@@ -7,6 +7,8 @@ import alignment
 import extraction
 import gc
 
+SIM_CONTEXT = 'xenonnt_sim_SR0v1_cmt_v8'
+SIM_DATA_PATH = '/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_data'
 AR_AVAILABLE = np.array(['034160', '033781', '033492', '033492', '033582', '033823',
        '033841', '034145', '033555', '033573', '034211', '034076',
        '033995', '034163', '033540', '034157', '033802', '033781',
@@ -31,6 +33,10 @@ SUPPORTED_SIGNALS = ['KrS1A', 'KrS1B', 'ArS1', 'sim_KrS1A', 'sim_KrS1B', 'sim_Ar
 ENERGY_DEPOSIT = {'sim_KrS1A': 32.1, 'sim_KrS1B': 9.4, 'sim_ArS1': 2.5, 'sim_AmBe': [2,20]} # KrS1B set to 9.35 instead of 9.4 to bypass weird nest feature https://github.com/NESTCollaboration/nestpy/blob/cddb082d4c69d87831872c67fc1fd48bebb8d28f/src/nestpy/NEST.cpp#L922
 INTERACTION_TYPES = {'sim_KrS1A': 11, 'sim_KrS1B': 11, 'sim_ArS1': 7, 'sim_AmBe': 4}
 DEFAULT_SIM_RUNS = {'sim_KrS1A': 'kr83ms1a_t1', 'sim_KrS1B': 'kr83ms1b_t1', 'sim_ArS1': 'ar37s1_t1', 'sim_AmBe':'ambes1_t1'}
+DEFAULT_SIM_FULL_EVENT_RUNS = np.array(['sim_KrS1_full_event_0', 'sim_KrS1_full_event_1', 'sim_KrS1_full_event_2', 
+                                        'sim_KrS1_full_event_3', 'sim_KrS1_full_event_4', 'sim_KrS1_full_event_5',
+                                        'sim_KrS1_full_event_6', 'sim_KrS1_full_event_7', 'sim_KrS1_full_event_8',
+                                        'sim_KrS1_full_event_9'])
 
 COMPARISON_SPACES2D = [('z', 'area_fraction_top'),
                      ('z', 'rise_time'), 
@@ -47,11 +53,12 @@ COMPARISON_SPACES1D = ['z', 'area', 'area_fraction_top', 'range_50p_area', 'rang
 ZSLIACES = np.array([-128, -116, -104,  -92, -79,  -67,  -55,  -43, -31,  -19])
 
 
-def get_peak_extra(signal_type, runid=False, straxen_config={}, **kargs):
+def get_peak_extra(signal_type, runid=False, sim_full_Kr_event=True, straxen_config={}, **kargs):
     """Wrapper around data/wfsim peak_extra getter.
 
     Args:
         signal_type (str): examples: ['KrS1A', 'KrS1B', 'ArS1', 'sim_KrS1A', 'sim_KrS1B', 'sim_ArS1', 'sim_AmBe']
+        sim_full_Kr_event (bool, optional): wfsim method, either single peak or full event. For Krypton matching, we are encouraged to use 'full event'.
         **kargs: keyword arguements for fax_config_overide applied to simulation.
 
     Returns:
@@ -64,25 +71,43 @@ def get_peak_extra(signal_type, runid=False, straxen_config={}, **kargs):
         print('Loading peak extra from data')
         if type(runid)==bool:
             print('Loading default runs from data')
-            peak_extra = extraction.get_data_peak_extra(signal_type=signal_type)
+            peak_extra = extraction.get_peak_extra_from_events(signal_type=signal_type)
         else:
             print('Loading selected runs from data')
-            peak_extra = extraction.get_data_peak_extra(signal_type=signal_type, runs=runid)
+            peak_extra = extraction.get_peak_extra_from_events(signal_type=signal_type, runs=runid)
     # wfsim
     else:
         print('Loading peak extra from wfsim')
         if type(runid)==bool:
             print('Loading default runs from sim')
-            peak_extra = simwrap.get_sim_peak_extra(runid=DEFAULT_SIM_RUNS[signal_type], 
-                                                    interaction_type=INTERACTION_TYPES[signal_type], 
-                                                    energy=ENERGY_DEPOSIT[signal_type],
-                                                    **kargs)
+            if sim_full_Kr_event and ('Kr' in signal_type):
+                print('Simulating full events for Kryptons')
+                peak_extra = extraction.get_peak_extra_from_events(signal_type=signal_type, 
+                                                                   runs=DEFAULT_SIM_FULL_EVENT_RUNS, 
+                                                                   version=SIM_CONTEXT, 
+                                                                   output_folder=SIM_DATA_PATH, 
+                                                                   interaction_type=11, energy=41.5, N=10000, **kargs)
+            else:
+                print('Simulating single peaks for %s'%(signal_type))
+                peak_extra = simwrap.get_sim_peak_extra(runid=DEFAULT_SIM_RUNS[signal_type], 
+                                                        interaction_type=INTERACTION_TYPES[signal_type], 
+                                                        energy=ENERGY_DEPOSIT[signal_type],
+                                                        **kargs)
         else:
             print('Loading selected runs from sim')
-            peak_extra = simwrap.get_sim_peak_extra(runid=runid, 
-                                                    interaction_type=INTERACTION_TYPES[signal_type], 
-                                                    energy=ENERGY_DEPOSIT[signal_type],
-                                                    **kargs)
+            if sim_full_Kr_event and ('Kr' in signal_type):
+                print('Simulating full events for Kryptons')
+                peak_extra = extraction.get_peak_extra_from_events(signal_type=signal_type, 
+                                                                   runs=runid, 
+                                                                   version=SIM_CONTEXT, 
+                                                                   output_folder=SIM_DATA_PATH, 
+                                                                   interaction_type=11, energy=41.5, N=10000, **kargs)
+            else:
+                print('Simulating single peaks for %s'%(signal_type))
+                peak_extra = simwrap.get_sim_peak_extra(runid=runid, 
+                                                        interaction_type=INTERACTION_TYPES[signal_type], 
+                                                        energy=ENERGY_DEPOSIT[signal_type],
+                                                        **kargs)
     return peak_extra
 
 
@@ -413,7 +438,6 @@ def sr0_auto_plots(signal_type = ['ArS1', 'KrS1B', 'KrS1A'], method = 'area_rang
     for sig_type in signal_type:
         gc.collect()
         print('Comparing %s'%(sig_type))
-
         sim_peak_extra = get_peak_extra('sim_'+sig_type,
                                         s1_pattern_map = s1_pattern_map,
                                         s1_time_spline = s1_time_spline,

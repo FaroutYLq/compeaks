@@ -18,6 +18,7 @@ downloader = straxen.MongoDownloader()
 nc = nestpy.NESTcalc(nestpy.DetectorExample_XENON10())
 density = 2.94
 driftfield= 22.92 # not really used. we are using spatial dependent map
+SIM_DATA_PATH = '/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_data'
 NSUMWVSAMPLES = 200
 NWIDTHS = 11
 INT_NAN = -99999
@@ -94,37 +95,37 @@ def single_s1_instruction(interaction_type, energy, N_events=1):
 
 
 def instruction(interaction_type, energy, N=10000):
-	"""Build instruction, depending on interaction type and energy.
+    """Build instruction, depending on interaction type and energy.
 
-	Args:
-		interaction_type (int): Following the NEST type of intereaction.
-		energy (float or list): energy deposit in unit of keV
-		N_events (int, optional): simulation number. Defaults to 10000.
-	"""
-	# If not Krypton, only simulate one peaks.
-	if interaction_type != 11:
-		fax_instr = []
-		N_events = 1
-		for j in range(N):
-			temp = single_s1_instruction(interaction_type, energy, N_events)
-			temp['time'] = temp['time'] + j * N_events * int(1e6)
-			fax_instr.append(temp)
-		fax_instr = np.concatenate(fax_instr)
-	
-	# If Krypton, simulate the whole event using generators.
-	else:
-		fax_instr = generator.generator_Kr83m(
-						n_tot=N, 
-						recoil=11,
-						rate = 30., # in Hz, hardcoded in case 
-						fmap=FIELD_MAP,
-						nc=nc, #nest calculator object
-						r_range = (0, 64),
-						z_range = (-142, -6))
-	
-	energy = 41 # hardcoded for Krypton
-	file_name = instr_file_name(fax_instr, interaction_type, energy)
-	return file_name
+    Args:
+      interaction_type (int): Following the NEST type of intereaction.
+      energy (float or list): energy deposit in unit of keV
+      N_events (int, optional): simulation number. Defaults to 10000.
+    """
+    # If not Krypton, only simulate one peaks.
+    if interaction_type != 11:
+      fax_instr = []
+      N_events = 1
+      for j in range(N):
+        temp = single_s1_instruction(interaction_type, energy, N_events)
+        temp['time'] = temp['time'] + j * N_events * int(1e6)
+        fax_instr.append(temp)
+      fax_instr = np.concatenate(fax_instr)
+
+    # If Krypton, simulate the whole event using generators.
+    else:
+      fax_instr = generator.generator_Kr83m(
+              n_tot=N, 
+              recoil=11,
+              rate = 30., # in Hz, hardcoded in case 
+              fmap=FIELD_MAP,
+              nc=nc, #nest calculator object
+              r_range = (0, 64),
+              z_range = (-142, -6))
+
+    energy = 41 # hardcoded for Krypton
+    file_name = instr_file_name(fax_instr, interaction_type, energy)
+    return file_name
 
 
 def instr_file_name(fax_instr, interaction_type, energy):
@@ -146,7 +147,7 @@ def instr_file_name(fax_instr, interaction_type, energy):
 	return file_name
 
 
-def get_sim_context(interaction_type, energy, N=10000, **kargs):
+def get_sim_context(interaction_type, energy, N=10000, version='xenonnt_sim_SR0v1_cmt_v8', **kargs):
 	"""Generate simulation context. Assumed single peak simulation, which might be unphysical for Kryptons.
 	nr=0, wimp=1, b8=2, dd=3, ambe=4, cf=5, ion=6, gammaray=7,
 	beta=8, ch3t=9, c14=10, kr83m=11, nonetype=12
@@ -155,12 +156,13 @@ def get_sim_context(interaction_type, energy, N=10000, **kargs):
 		interaction_type (int): Following the NEST type of intereaction.
 		energy (float or list): energy deposit in unit of keV
 		N (int, optional): simulation number. Defaults to 1.
+		version (str, optional): cutax context. Defaults to 'xenonnt_sim_SR0v1_cmt_v8'.
 	"""
 	# generate and save instruction
 	file_name = instruction(interaction_type, energy, N)
 
-	stwf = cutax.contexts.xenonnt_sim_SR0v1_cmt_v8(
-		output_folder='/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_data')
+	context_func = getattr(cutax, version)
+	stwf = context_func(output_folder=SIM_DATA_PATH)
 	stwf.register_all(cutax.cut_lists.kr83m)
 	stwf.register_all(cutax.cut_lists.basic)
 
