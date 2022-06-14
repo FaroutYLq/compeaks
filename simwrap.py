@@ -171,9 +171,7 @@ def get_sim_context(interaction_type, energy, N=10000, **kargs):
 	stwf.set_config(dict(fax_config_override=config_dict))
 
 	stwf.set_config(
-		dict(fax_file=file_name,
-				right_raw_extension=20000,
-				event_rate=1000,))
+		dict(fax_file=file_name, event_rate=1000,))
 
 	stwf.register_all(pema.match_plugins)
 
