@@ -7,7 +7,7 @@ import alignment
 import extraction
 import gc
 
-SIM_CONTEXT = 'xenonnt_sim_SR0v1_cmt_v8'
+SIM_CONTEXT = 'xenonnt_sim_SR0v0_cmt_v8' # Should change to v1 very soon...
 SIM_DATA_PATH = '/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_data'
 AR_AVAILABLE = np.array(['034160', '033781', '033492', '033492', '033582', '033823',
        '033841', '034145', '033555', '033573', '034211', '034076',
@@ -39,14 +39,14 @@ DEFAULT_SIM_FULL_EVENT_RUNS = np.array(['sim_KrS1_full_event_0', 'sim_KrS1_full_
                                         'sim_KrS1_full_event_9'])
 
 COMPARISON_SPACES2D = [('z', 'area_fraction_top'),
-                     ('z', 'rise_time'), 
-                     ('z', 'range_50p_area'),
-                     ('z', 'range_90p_area'),
-                     ('z', 'area'),
-                     ('z', 'tight_coincidence'),
-                     ('area_fraction_top','rise_time'),
-                     ('area', 'range_50p_area'),
-                     ('area', 'rise_time')]
+                       ('z', 'rise_time'), 
+                       ('z', 'range_50p_area'),
+                       ('z', 'range_90p_area'),
+                       ('z', 'area'),
+                       ('z', 'tight_coincidence'),
+                       ('area_fraction_top','rise_time'),
+                       ('area', 'range_50p_area'),
+                       ('area', 'rise_time')]
 COMPARISON_SPACES1D = ['z', 'area', 'area_fraction_top', 'range_50p_area', 'range_90p_area',
                        'rise_time', 'n_channels', 'tight_coincidence', 'n_hits']
 
@@ -86,7 +86,7 @@ def get_peak_extra(signal_type, runid=False, sim_full_Kr_event=True, straxen_con
                                                                    runs=DEFAULT_SIM_FULL_EVENT_RUNS, 
                                                                    version=SIM_CONTEXT, 
                                                                    output_folder=SIM_DATA_PATH, 
-                                                                   interaction_type=11, energy=41.5, N=10000, **kargs)
+                                                                   interaction_type=11, energy=41.5, N=30000, **kargs)
             else:
                 print('Simulating single peaks for %s'%(signal_type))
                 peak_extra = simwrap.get_sim_peak_extra(runid=DEFAULT_SIM_RUNS[signal_type], 
@@ -101,7 +101,7 @@ def get_peak_extra(signal_type, runid=False, sim_full_Kr_event=True, straxen_con
                                                                    runs=runid, 
                                                                    version=SIM_CONTEXT, 
                                                                    output_folder=SIM_DATA_PATH, 
-                                                                   interaction_type=11, energy=41.5, N=10000, **kargs)
+                                                                   interaction_type=11, energy=41.5, N=30000, **kargs)
             else:
                 print('Simulating single peaks for %s'%(signal_type))
                 peak_extra = simwrap.get_sim_peak_extra(runid=runid, 

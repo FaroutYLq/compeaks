@@ -147,7 +147,7 @@ def instr_file_name(fax_instr, interaction_type, energy):
 	return file_name
 
 
-def get_sim_context(interaction_type, energy, N=10000, version='xenonnt_sim_SR0v1_cmt_v8', **kargs):
+def get_sim_context(interaction_type, energy, N=10000, version='xenonnt_sim_SR0v0_cmt_v8', **kargs):
 	"""Generate simulation context. Assumed single peak simulation, which might be unphysical for Kryptons.
 	nr=0, wimp=1, b8=2, dd=3, ambe=4, cf=5, ion=6, gammaray=7,
 	beta=8, ch3t=9, c14=10, kr83m=11, nonetype=12
@@ -156,7 +156,7 @@ def get_sim_context(interaction_type, energy, N=10000, version='xenonnt_sim_SR0v
 		interaction_type (int): Following the NEST type of intereaction.
 		energy (float or list): energy deposit in unit of keV
 		N (int, optional): simulation number. Defaults to 1.
-		version (str, optional): cutax context. Defaults to 'xenonnt_sim_SR0v1_cmt_v8'.
+		version (str, optional): cutax context. Defaults to 'xenonnt_sim_SR0v0_cmt_v8'.
 	"""
 	# generate and save instruction
 	file_name = instruction(interaction_type, energy, N)
@@ -171,11 +171,10 @@ def get_sim_context(interaction_type, energy, N=10000, version='xenonnt_sim_SR0v
 	print('FAX config override:')
 	print(config_dict)
 	stwf.set_config(dict(fax_config_override=config_dict))
-
-	stwf.set_config(
-		dict(fax_file=file_name, event_rate=1000,))
+	stwf.set_config(dict(fax_file=file_name))
 
 	stwf.register_all(pema.match_plugins)
+	print('Loaded PEMA match plugins')
 
 	return stwf
 
