@@ -269,9 +269,9 @@ def sims1(z_position, interaction_type, e_dep,
 
 
 def get_s1_templates(interaction_type, e_dep, z_positions=ZSLIACES,
-                     spline_file='XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz', 
-                     pattern_map_file = 'XENONnT_s1_xyz_patterns_LCE_corrected_qes_MCva43fa9b_wires.pkl',
-                     config_file='fax_config_nt_sr0_v1.json',
+                     spline_file='/project2/lgrandi/yuanlq/shared/s1_optical/XENONnT_s1_proponly_pc_reflection_optPhot_perPMT_S1_local_20220510.json.gz', 
+                     pattern_map_file = 'XENONnT_s1_xyz_patterns_LCE_MCvf051911_wires.pkl',
+                     config_file='fax_config_nt_sr0_v0.json',
                      plot=True):
     """Get s1 templates based on wfsim from different depth slices.
 

@@ -64,7 +64,7 @@ class Submit(object):
         jobname = 'peak_extra_%s_%s'%(signal, loop_index)
         run_id = loop_item
         # Modify here for the script to run
-        jobstring = "python /home/yuanlq/xenon/compeaks/process_peak_extra.py %s %s"%(run_id, signal)
+        jobstring = "python /home/yuanlq/xenon/compeaks/job_submit/process_peak_extra.py %s %s"%(run_id, signal)
         print(jobstring)
 
         # Modify here for the log name

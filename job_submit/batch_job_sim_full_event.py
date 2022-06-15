@@ -7,10 +7,13 @@ import utilix
 from utilix.batchq import *
 print(utilix.__file__)
 
-DEFAULT_SIM_FULL_EVENT_RUNS = np.array(['sim_KrS1_full_event_0', 'sim_KrS1_full_event_1', 'sim_KrS1_full_event_2', 
-                                        'sim_KrS1_full_event_3', 'sim_KrS1_full_event_4', 'sim_KrS1_full_event_5',
-                                        'sim_KrS1_full_event_6', 'sim_KrS1_full_event_7', 'sim_KrS1_full_event_8',
-                                        'sim_KrS1_full_event_9'])
+DEFAULT_SIM_FULL_EVENT_RUNS = np.array(['sim_KrS1_full_event_00', 'sim_KrS1_full_event_01', 'sim_KrS1_full_event_02', 
+                                        'sim_KrS1_full_event_03', 'sim_KrS1_full_event_04', 'sim_KrS1_full_event_05',
+                                        'sim_KrS1_full_event_06', 'sim_KrS1_full_event_07', 'sim_KrS1_full_event_08',
+                                        'sim_KrS1_full_event_09', 'sim_KrS1_full_event_10', 'sim_KrS1_full_event_11', 
+                                        'sim_KrS1_full_event_12', 'sim_KrS1_full_event_13', 'sim_KrS1_full_event_14', 
+                                        'sim_KrS1_full_event_15', 'sim_KrS1_full_event_16', 'sim_KrS1_full_event_17', 
+                                        'sim_KrS1_full_event_18', 'sim_KrS1_full_event_19'])
 
 class Submit(object):
     '''
@@ -35,7 +38,7 @@ class Submit(object):
                 self._submit_single(loop_index=index,
                                     loop_item=self.loop_over[index])
 
-                time.sleep(1.0)
+                time.sleep(60.0)
                 index += 1
 
     # check my jobs

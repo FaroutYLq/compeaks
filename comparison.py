@@ -33,11 +33,22 @@ SUPPORTED_SIGNALS = ['KrS1A', 'KrS1B', 'ArS1', 'sim_KrS1A', 'sim_KrS1B', 'sim_Ar
 ENERGY_DEPOSIT = {'sim_KrS1A': 32.1, 'sim_KrS1B': 9.4, 'sim_ArS1': 2.5, 'sim_AmBe': [2,20]} # KrS1B set to 9.35 instead of 9.4 to bypass weird nest feature https://github.com/NESTCollaboration/nestpy/blob/cddb082d4c69d87831872c67fc1fd48bebb8d28f/src/nestpy/NEST.cpp#L922
 INTERACTION_TYPES = {'sim_KrS1A': 11, 'sim_KrS1B': 11, 'sim_ArS1': 7, 'sim_AmBe': 4}
 DEFAULT_SIM_RUNS = {'sim_KrS1A': 'kr83ms1a_t1', 'sim_KrS1B': 'kr83ms1b_t1', 'sim_ArS1': 'ar37s1_t1', 'sim_AmBe':'ambes1_t1'}
-DEFAULT_SIM_FULL_EVENT_RUNS = np.array(['sim_KrS1_full_event_0', 'sim_KrS1_full_event_1', 'sim_KrS1_full_event_2', 
-                                        'sim_KrS1_full_event_3', 'sim_KrS1_full_event_4', 'sim_KrS1_full_event_5',
-                                        'sim_KrS1_full_event_6', 'sim_KrS1_full_event_7', 'sim_KrS1_full_event_8',
-                                        'sim_KrS1_full_event_9'])
-
+"""
+DEFAULT_SIM_FULL_EVENT_RUNS = np.array(['sim_KrS1_full_event_00', 'sim_KrS1_full_event_01', 'sim_KrS1_full_event_02', 
+                                        'sim_KrS1_full_event_03', 'sim_KrS1_full_event_04', 'sim_KrS1_full_event_05',
+                                        'sim_KrS1_full_event_06', 'sim_KrS1_full_event_07', 'sim_KrS1_full_event_08',
+                                        'sim_KrS1_full_event_09', 'sim_KrS1_full_event_10', 'sim_KrS1_full_event_11', 
+                                        'sim_KrS1_full_event_12', 'sim_KrS1_full_event_13', 'sim_KrS1_full_event_14', 
+                                        'sim_KrS1_full_event_15', 'sim_KrS1_full_event_16', 'sim_KrS1_full_event_17', 
+                                        'sim_KrS1_full_event_18', 'sim_KrS1_full_event_19'])
+"""
+DEFAULT_SIM_FULL_EVENT_RUNS = np.array(['sim_KrS1_full_event_00', 'sim_KrS1_full_event_02', 
+                                        'sim_KrS1_full_event_03', 'sim_KrS1_full_event_04',
+                                        'sim_KrS1_full_event_06', 'sim_KrS1_full_event_07', 'sim_KrS1_full_event_08',
+                                        'sim_KrS1_full_event_09', 'sim_KrS1_full_event_10', 'sim_KrS1_full_event_11', 
+                                        'sim_KrS1_full_event_12', 'sim_KrS1_full_event_13', 'sim_KrS1_full_event_14', 
+                                        'sim_KrS1_full_event_16', 'sim_KrS1_full_event_17', 
+                                        'sim_KrS1_full_event_18', 'sim_KrS1_full_event_19'])
 COMPARISON_SPACES2D = [('z', 'area_fraction_top'),
                        ('z', 'rise_time'), 
                        ('z', 'range_50p_area'),
@@ -421,7 +432,7 @@ def compare2d(x1s, y1s, x2s, y2s, x_range=False, y_range=False, n_x=20, logx=Fal
     ax.grid()
 
 
-def sr0_auto_plots(signal_type = ['ArS1', 'KrS1B', 'KrS1A'], method = 'area_range',
+def sr0_auto_plots(signal_type = ['ArS1', 'KrS1B', 'KrS1A'], method = 'area_range', sim_full_Kr_event=True,
                    s1_pattern_map = 'XENONnT_s1_xyz_patterns_LCE_MCvf051911_wires.pkl', 
                    s1_time_spline = '/project2/lgrandi/yuanlq/shared/s1_optical/XENONnT_s1_proponly_pc_reflection_optPhot_perPMT_S1_local_20220510.json.gz',
                    errorbar = 'mean_error', **kargs):
@@ -430,6 +441,7 @@ def sr0_auto_plots(signal_type = ['ArS1', 'KrS1B', 'KrS1A'], method = 'area_rang
     Args:
         signal_type (list, optional): please put data here if you want to involve data in comparison!. Defaults to ['ArS1', 'KrS1A'].
         method (str, optional): method (str, optional): alignment technique. For example: {'first_phr', 'area_range', 'self_adjusted'}. Defaults to 'first_phr'.
+        sim_full_Kr_event (bool, optional): wfsim method, either single peak or full event. For Krypton matching, we are encouraged to use 'full event'.
         s1_pattern_map (str, optional): path to s1 pattern map from resources. Defaults to 'XENONnT_s1_xyz_patterns_LCE_MCvf051911_wires.pkl'.
         s1_time_spline (str, optional): path to s1 optical propagation splines from resources. Defaults to 'XENONnT_s1_proponly_va43fa9b_wires_20200625.json.gz'.
         **kargs: keyword arguements for fax_config_overide applied to simulation.
@@ -441,6 +453,7 @@ def sr0_auto_plots(signal_type = ['ArS1', 'KrS1B', 'KrS1A'], method = 'area_rang
         sim_peak_extra = get_peak_extra('sim_'+sig_type,
                                         s1_pattern_map = s1_pattern_map,
                                         s1_time_spline = s1_time_spline,
+                                        sim_full_Kr_event = sim_full_Kr_event,
                                         **kargs)
         peak_extra = get_peak_extra(signal_type=sig_type)
 
