@@ -69,9 +69,9 @@ class Submit(object):
 
         # Modify here for the log name
         utilix.batchq.submit_job(
-            jobstring, log='/home/yuanlq/.tmp_job_submission/peak_extra_%s_%s.log'%(run_id, signal), partition='xenon1t', qos='xenon1t',
+            jobstring, log='/home/yuanlq/.tmp_job_submission/peak_extra_%s_%s.log'%(run_id, signal), partition='dali', qos='dali',
             account='pi-lgrandi', jobname=jobname,
-            delete_file=True, dry_run=False, mem_per_cpu=5000,
+            delete_file=True, dry_run=False, mem_per_cpu=10000,
             container='xenonnt-development.simg',
             cpus_per_task=1)
 
