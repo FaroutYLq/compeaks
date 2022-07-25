@@ -439,8 +439,8 @@ def compare2d(x1s, y1s, x2s, y2s, x_range=False, y_range=False, n_x=20, logx=Fal
 
 
 def sr0_auto_plots(signal_type = ['ArS1', 'KrS1B', 'KrS1A'], method = 'area_range', sim_full_Kr_event=True,
-                   s1_pattern_map = 'XENONnT_s1_xyz_patterns_LCE_MCvf051911_wires.pkl', 
-                   s1_time_spline = '/project2/lgrandi/yuanlq/shared/s1_optical/XENONnT_s1_proponly_pc_reflection_optPhot_perPMT_S1_local_20220510.json.gz',
+                   s1_pattern_map = "XENONnT_s1_xyz_patterns_LCE_MCvf051911_wires.pkl", 
+                   s1_time_spline = "XENONnT_s1_proponly_pc_reflection_optPhot_perPMT_S1_local_20220510.json.gz",
                    errorbar = 'mean_error', **kargs):
     """Automatically generate comparison plots given optical maps.
 
