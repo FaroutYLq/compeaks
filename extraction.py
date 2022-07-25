@@ -92,7 +92,9 @@ class EventsOfInterest(strax.Plugin):
     def compute(self, events):
         if self.config['fv_cut']:
             events_oi = events[events['cut_fiducial_volume']]
-        events_oi = events_oi[events_oi[self.cut_name()]]
+            events_oi = events_oi[events_oi[self.cut_name()]]
+        else:
+            events_oi = events[events[self.cut_name()]]
         return events_oi
 
 
