@@ -24,12 +24,12 @@ NWIDTHS = 11
 INT_NAN = -99999
 FIELD_FILE="fieldmap_2D_B2d75n_C2d75n_G0d3p_A4d9p_T0d9n_PMTs1d3n_FSR0d65p_QPTFE_0d5n_0d4p.json.gz"
 FAX_CONFIG_DEFAULT={
-        's1_time_spline': '/project2/lgrandi/yuanlq/shared/s1_optical/XENONnT_s1_proponly_pc_reflection_optPhot_perPMT_S1_local_20220510.json.gz',
         'enable_noise': True,
         'enable_electron_afterpulses': True,
         'enable_pmt_afterpulses': False,  
-        'override_s1_photon_time_field': -1
     }
+#'s1_time_spline': '/project2/lgrandi/yuanlq/shared/s1_optical/XENONnT_s1_proponly_pc_reflection_optPhot_perPMT_S1_local_20220510.json.gz',
+#'override_s1_photon_time_field': -1
 FIELD_MAP = straxen.InterpolatingMap(
                 straxen.get_resource(downloader.download_single(FIELD_FILE),
                 fmt="json.gz"),
@@ -129,54 +129,54 @@ def instruction(interaction_type, energy, N=10000):
 
 
 def instr_file_name(fax_instr, interaction_type, energy):
-	"""Generate file name for instruction and save it.
+    """Generate file name for instruction and save it.
 
-	Args:
-		fax_instr (array): Fax instruction.
-		interaction_type (int): Following the NEST type of intereaction.
-		energy (float or list): energy deposit in unit of keV
-	"""
-	now_str = datetime.datetime.now().strftime('%Y%m%d%H%M')
-	if (type(energy) == float) or (type(energy) == int):
-		file_name = '/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_config/int%s_e%s_%s_%s.csv'%(interaction_type, int(energy),int(energy),now_str)
-	else:
-		file_name = '/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_config/int%s_e%s_%s_%s.csv'%(interaction_type, int(energy[0]),int(energy[1]), now_str)
-	pd.DataFrame(fax_instr).to_csv(file_name, index=False)
-	print('Instruction file at: %s'%(file_name))
+    Args:
+      fax_instr (array): Fax instruction.
+      interaction_type (int): Following the NEST type of intereaction.
+      energy (float or list): energy deposit in unit of keV
+    """
+    now_str = datetime.datetime.now().strftime('%Y%m%d%H%M')
+    if (type(energy) == float) or (type(energy) == int):
+      file_name = '/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_config/int%s_e%s_%s_%s.csv'%(interaction_type, int(energy),int(energy),now_str)
+    else:
+      file_name = '/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_config/int%s_e%s_%s_%s.csv'%(interaction_type, int(energy[0]),int(energy[1]), now_str)
+    pd.DataFrame(fax_instr).to_csv(file_name, index=False)
+    print('Instruction file at: %s'%(file_name))
 
-	return file_name
+    return file_name
 
 
 def get_sim_context(interaction_type, energy, N=10000, version='xenonnt_sim_SR0v0_cmt_v8', **kargs):
-	"""Generate simulation context. Assumed single peak simulation, which might be unphysical for Kryptons.
-	nr=0, wimp=1, b8=2, dd=3, ambe=4, cf=5, ion=6, gammaray=7,
-	beta=8, ch3t=9, c14=10, kr83m=11, nonetype=12
+    """Generate simulation context. Assumed single peak simulation, which might be unphysical for Kryptons.
+    nr=0, wimp=1, b8=2, dd=3, ambe=4, cf=5, ion=6, gammaray=7,
+    beta=8, ch3t=9, c14=10, kr83m=11, nonetype=12
 
-	Args:
-		interaction_type (int): Following the NEST type of intereaction.
-		energy (float or list): energy deposit in unit of keV
-		N (int, optional): simulation number. Defaults to 1.
-		version (str, optional): cutax context. Defaults to 'xenonnt_sim_SR0v0_cmt_v8'.
-	"""
-	# generate and save instruction
-	file_name = instruction(interaction_type, energy, N)
+    Args:
+      interaction_type (int): Following the NEST type of intereaction.
+      energy (float or list): energy deposit in unit of keV
+      N (int, optional): simulation number. Defaults to 1.
+      version (str, optional): cutax context. Defaults to 'xenonnt_sim_SR0v0_cmt_v8'.
+    """
+    # generate and save instruction
+    file_name = instruction(interaction_type, energy, N)
 
-	context_func = getattr(cutax, version)
-	stwf = context_func(output_folder=SIM_DATA_PATH)
-	stwf.register_all(cutax.cut_lists.kr83m)
-	stwf.register_all(cutax.cut_lists.basic)
+    context_func = getattr(cutax, version)
+    stwf = context_func(output_folder=SIM_DATA_PATH)
+    stwf.register_all(cutax.cut_lists.kr83m)
+    stwf.register_all(cutax.cut_lists.basic)
 
-	config_dict = FAX_CONFIG_DEFAULT
-	config_dict.update(**kargs)
-	print('FAX config override:')
-	print(config_dict)
-	stwf.set_config(dict(fax_config_override=config_dict))
-	stwf.set_config(dict(fax_file=file_name))
+    config_dict = FAX_CONFIG_DEFAULT
+    config_dict.update(**kargs)
+    print('FAX config override:')
+    print(config_dict)
+    stwf.set_config(dict(fax_config_override=config_dict))
+    stwf.set_config(dict(fax_file=file_name))
 
-	stwf.register_all(pema.match_plugins)
-	print('Loaded PEMA match plugins')
+    stwf.register_all(pema.match_plugins)
+    print('Loaded PEMA match plugins')
 
-	return stwf
+    return stwf
 
 
 def sim_peak_extra(peaks, peak_basics, truth, match):

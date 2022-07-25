@@ -7,7 +7,7 @@ import alignment
 import extraction
 import gc
 
-SIM_CONTEXT = 'xenonnt_sim_SR0v0_cmt_v8' # Should change to v1 very soon...
+SIM_CONTEXT = 'xenonnt_sim_SR0dev_cmt_v8' 
 SIM_DATA_PATH = '/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_data'
 AR_AVAILABLE = np.array(['034160', '033781', '033492', '033492', '033582', '033823',
        '033841', '034145', '033555', '033573', '034211', '034076',
@@ -212,7 +212,10 @@ def compare_avgwfs(signal_type0, signal_type1, avg_wf_mean0, avg_wf_mean1, metho
             axs[j, i-4*j].plot(np.arange(len(wf0)), wf0, label=signal_type0+':'+str(compute_rise_time(wf0))+'ns')
             axs[j, i-4*j].plot(np.arange(len(wf1)), wf1, label=signal_type1+':'+str(compute_rise_time(wf1))+'ns')
             axs[j, i-4*j].legend()
-            axs[j, i-4*j].set_xlim(0,600)
+            if signal_type1[:3] == 'sim' or signal_type0[:3] == 'sim':
+                axs[j, i-4*j].set_xlim(0,600)
+            else:
+                axs[j, i-4*j].set_xlim(300,900)
             axs[j, i-4*j].grid()
             axs[j, i-4*j].set_xlabel('time [ns]')
             axs[j, i-4*j].set_title('%s at %scm'%(method, ZSLIACES[i]))
@@ -227,7 +230,10 @@ def compare_avgwfs(signal_type0, signal_type1, avg_wf_mean0, avg_wf_mean1, metho
             axs[j, i-4*j].plot(np.arange(len(wf1)), wf1, label=signal_type1+':'+str(compute_rise_time(wf1))+'ns')
             axs[j, i-4*j].legend()
             axs[j, i-4*j].grid()
-            axs[j, i-4*j].set_xlim(0,600)
+            if signal_type1[:3] == 'sim' or signal_type0[:3] == 'sim':
+                axs[j, i-4*j].set_xlim(0,600)
+            else:
+                axs[j, i-4*j].set_xlim(300,900)
             axs[j, i-4*j].set_xlabel('time [ns]')
             axs[j, i-4*j].set_title('%s at %scm'%(method, ZSLIACES[i]))
     
