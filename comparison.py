@@ -7,7 +7,7 @@ import alignment
 import extraction
 import gc
 
-SIM_CONTEXT = "xenonnt_sim_SR0dev_cmt_v8"
+SIM_CONTEXT = "xenonnt_sim_SR0v2_cmt_v8"
 SIM_DATA_PATH = "/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_data"
 AR_AVAILABLE = np.array(
     [

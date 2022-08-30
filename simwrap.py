@@ -13,12 +13,13 @@ import pema
 import datetime
 import generator
 import cutax
+from comparison import SIM_DATA_PATH
+from comparison import SIM_CONTEXT
 
 downloader = straxen.MongoDownloader()
 nc = nestpy.NESTcalc(nestpy.DetectorExample_XENON10())
 density = 2.94
 driftfield = 22.92  # not really used. we are using spatial dependent map
-SIM_DATA_PATH = "/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_data"
 NSUMWVSAMPLES = 200
 NWIDTHS = 11
 INT_NAN = -99999
@@ -160,7 +161,7 @@ def instr_file_name(fax_instr, interaction_type, energy):
 
 
 def get_sim_context(
-    interaction_type, energy, N=10000, version="xenonnt_sim_SR0v2_cmt_v8", **kargs
+    interaction_type, energy, N=10000, version=SIM_CONTEXT, **kargs
 ):
     """Generate simulation context. Assumed single peak simulation, which might be unphysical for Kryptons.
     nr=0, wimp=1, b8=2, dd=3, ambe=4, cf=5, ion=6, gammaray=7,
