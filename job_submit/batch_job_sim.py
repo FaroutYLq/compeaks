@@ -54,7 +54,7 @@ class Submit(object):
 
         # Modify here for the script to run
         jobstring = (
-            "python /home/yuanlq/xenon/compeaks/sim_peak_extra.py %s %s %s %s"
+            "python /home/yuanlq/xenon/compeaks/job_submit/sim_peak_extra.py %s %s %s %s"
             % (run_id, interaction_type, energy, N)
         )
         print(jobstring)

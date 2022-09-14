@@ -168,8 +168,8 @@ class Submit(object):
             jobstring,
             log="/home/yuanlq/.tmp_job_submission/peak_extra_%s_%s.log"
             % (run_id, signal),
-            partition="dali",
-            qos="dali",
+            partition="xenon1t",
+            qos="xenon1t",
             account="pi-lgrandi",
             jobname=jobname,
             delete_file=True,
