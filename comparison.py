@@ -6,9 +6,9 @@ import simwrap
 import alignment
 import extraction
 import gc
+from simwrap import SIM_DATA_PATH
+from simwrap import SIM_CONTEXT
 
-SIM_CONTEXT = "xenonnt_sim_SR0v2_cmt_v8"
-SIM_DATA_PATH = "/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_data"
 AR_AVAILABLE = np.array(
     [
         "034160",

@@ -13,8 +13,10 @@ import pema
 import datetime
 import generator
 import cutax
-from comparison import SIM_DATA_PATH
-from comparison import SIM_CONTEXT
+
+
+SIM_DATA_PATH = "/dali/lgrandi/yuanlq/s1_wf_comparison/wfsim_data"
+SIM_CONTEXT = "xenonnt_sim_SR0v2_cmt_v8"
 
 downloader = straxen.MongoDownloader()
 nc = nestpy.NESTcalc(nestpy.DetectorExample_XENON10())
@@ -171,15 +173,15 @@ def get_sim_context(
       interaction_type (int): Following the NEST type of intereaction.
       energy (float or list): energy deposit in unit of keV
       N (int, optional): simulation number. Defaults to 1.
-      version (str, optional): cutax context. Defaults to 'xenonnt_sim_SR0v2_cmt_v8'.
+      version (str, optional): cutax context. Defaults to SIM_CONTEXT.
     """
     # generate and save instruction
     file_name = instruction(interaction_type, energy, N)
 
     context_func = getattr(cutax, version)
     stwf = context_func(output_folder=SIM_DATA_PATH)
-    stwf.register_all(cutax.cut_lists.kr83m)
     stwf.register_all(cutax.cut_lists.basic)
+    stwf.register_all(cutax.cut_lists.kr83m)
 
     config_dict = FAX_CONFIG_DEFAULT
     config_dict.update(**kargs)
@@ -306,7 +308,7 @@ def sim_peak_extra(peaks, peak_basics, truth, match):
 
 
 def get_sim_peak_extra(
-    runid, interaction_type, energy, N=100000, straxen_config={}, **kargs
+    runid, interaction_type, energy, N=100000, straxen_config={}, version=SIM_CONTEXT, **kargs
 ):
     """Get peak_extra for simulation.
     nr=0, wimp=1, b8=2, dd=3, ambe=4, cf=5, ion=6, gammaray=7,
@@ -317,12 +319,14 @@ def get_sim_peak_extra(
         interaction_type (int): Following the NEST type of intereaction.
         energy (float or list): energy deposit in unit of keV
         N (int, optional): simulation number. Defaults to 1.
+        straxen_config (dict): straxen options override.
+        version (str, optional): cutax context. Defaults to SIM_CONTEXT.
         **kargs: overide fax config.
 
     Returns:
         (ndarray): peak extra for simulation (not exactly same dtype as is in regular peak_extra)
     """
-    st = get_sim_context(interaction_type=interaction_type, energy=energy, N=N, **kargs)
+    st = get_sim_context(interaction_type=interaction_type, energy=energy, N=N, version=version, **kargs)
     truth = st.get_array(runid, "truth", config=straxen_config)
     peaks = st.get_array(runid, "peaks", config=straxen_config)
     peak_basics = st.get_array(runid, "peak_basics", config=straxen_config)
@@ -330,3 +334,30 @@ def get_sim_peak_extra(
     peak_extra = sim_peak_extra(peaks, peak_basics, truth, match)
 
     return peak_extra
+
+
+def get_sim_peaklets(
+    runid, interaction_type, energy, N=100000, straxen_config={}, version=SIM_CONTEXT, **kargs
+):
+    """Get peaklets and truth for simulation.
+    nr=0, wimp=1, b8=2, dd=3, ambe=4, cf=5, ion=6, gammaray=7,
+    beta=8, ch3t=9, c14=10, kr83m=11, nonetype=12
+
+    Args:
+        runid (str): runid in wfsim
+        interaction_type (int): Following the NEST type of intereaction.
+        energy (float or list): energy deposit in unit of keV
+        N (int, optional): simulation number. Defaults to 1.
+        straxen_config (dict): straxen options override.
+        version (str, optional): cutax context. Defaults to SIM_CONTEXT.
+        **kargs: overide fax config.
+
+    Returns:
+        (ndarray): simulated peaklets
+        (ndarray): truth
+    """
+    st = get_sim_context(interaction_type=interaction_type, energy=energy, N=N, version=version, **kargs)
+    truth = st.get_array(runid, "truth", config=straxen_config)
+    peaklets = st.get_array(runid, "peaklets", config=straxen_config)
+
+    return peaklets, truth
