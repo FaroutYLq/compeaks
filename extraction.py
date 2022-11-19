@@ -2,7 +2,7 @@ import numpy as np
 import strax
 import cutax
 from straxen import pre_apply_function
-from straxen.plugins.peak_processing import PeakBasics
+from straxen.plugins.peaks.peak_basics import PeakBasics
 import simwrap
 
 export, __all__ = strax.exporter()
